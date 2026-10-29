@@ -1,0 +1,101 @@
+// Diagnostics for the light control ECU.
+//
+// Second feature file of the same ECU as light-control.ardl: names are global
+// across all .ardl files, so this file reuses LampState, OutsideTemp, Body and
+// the BSW declared there and only adds what diagnostics needs.
+//
+// DiagMaster watches the lamp output, reports faults to the Dem and serves the
+// Dcm: a DID with the lamp status, a lamp test routine and the session mode.
+
+// ------------------------------------------------------------ interfaces
+
+// Dem: one client-server port per diagnostic event.
+interface cs DiagnosticMonitor {
+    SetEventStatus(in EventStatus: Dem_EventStatusType): Std_ReturnType
+}
+
+// Dcm calls the application for DIDs and routines.
+interface cs DataServices_LampStatus {
+    ReadData(out Data: uint8[2]): Std_ReturnType
+}
+
+interface cs RoutineServices_LampTest {
+    Start(in duration: uint16, out ErrorCode: Dcm_NegativeResponseCodeType): Std_ReturnType
+    RequestResults(out result: uint8, out ErrorCode: Dcm_NegativeResponseCodeType): Std_ReturnType
+}
+
+interface mode DcmDiagnosticSessionControl {
+    modes DEFAULT_SESSION, PROGRAMMING_SESSION, EXTENDED_SESSION
+}
+
+// ------------------------------------------------------------ application
+
+swc application DiagMaster {
+    rport RpLampState       : LampState
+    rport RpEvtLampOpen     : DiagnosticMonitor
+    rport RpEvtLampStuck    : DiagnosticMonitor
+    rport RpSession         : DcmDiagnosticSessionControl
+    pport PpDidLampStatus   : DataServices_LampStatus
+    pport PpRoutineLampTest : RoutineServices_LampTest
+
+    runnable R_Monitor     every 20ms reads RpLampState calls RpEvtLampOpen, RpEvtLampStuck
+    runnable R_ReadLampDid on call PpDidLampStatus reads RpLampState
+    runnable R_LampTest    on call PpRoutineLampTest
+    runnable R_Session     on mode RpSession
+}
+
+// ------------------------------------------------------------ basic software
+
+bsw Dcm layer services uses PduR, Dem {
+    pport SessionControl  : DcmDiagnosticSessionControl
+    rport DidLampStatus   : DataServices_LampStatus
+    rport RoutineLampTest : RoutineServices_LampTest
+    runnable Dcm_MainFunction every 10ms calls DidLampStatus, RoutineLampTest switches SessionControl
+}
+
+bsw Dem layer services uses NvM {
+    pport EvtLampOpen  : DiagnosticMonitor
+    pport EvtLampStuck : DiagnosticMonitor
+    runnable Dem_MainFunction every 10ms
+    runnable Dem_SetEventStatus on call EvtLampOpen on call EvtLampStuck
+}
+
+bsw CanTp layer services uses CanIf
+
+// ------------------------------------------------------------ compositions
+
+composition DiagMasterComposition {
+    rport LampState : LampState
+
+    prototype DiagMaster
+    prototype dcm: Dcm
+    prototype dem: Dem
+
+    connect LampState                    -> DiagMaster.RpLampState
+    connect dem.EvtLampOpen              -> DiagMaster.RpEvtLampOpen
+    connect dem.EvtLampStuck             -> DiagMaster.RpEvtLampStuck
+    connect dcm.SessionControl           -> DiagMaster.RpSession
+    connect DiagMaster.PpDidLampStatus   -> dcm.DidLampStatus
+    connect DiagMaster.PpRoutineLampTest -> dcm.RoutineLampTest
+}
+
+// Top level: the light function and its diagnostics side by side.
+composition LightEcu {
+    rport OutsideTemp : OutsideTemp
+    pport Lamp        : LampState
+
+    prototype Body
+    prototype diag: DiagMasterComposition
+
+    connect OutsideTemp -> Body.OutsideTemp
+    connect Body.Lamp   -> diag.LampState
+    connect Body.Lamp   -> Lamp
+}
+
+// ------------------------------------------------------------ views
+
+view EcuTopLevel composition LightEcu title "Light ECU: top-level composition"
+view DiagComposition composition DiagMasterComposition title "Diagnostics composition"
+view DiagMasterRunnables component DiagMaster title "DiagMaster: monitoring and diagnostic services"
+view DcmDetail component Dcm title "Dcm: service ports"
+view DiagStack layers { Dcm, Dem, PduR, CanTp, CanIf, Can, NvM, MemIf, Fee, Fls } title "Diagnostic stack"

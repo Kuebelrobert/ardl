@@ -1,0 +1,11 @@
+**
+!package.json
+!README.md
+!LICENSE
+!language-configuration.json
+!syntaxes/**
+!media/**
+!out/extension/main.cjs
+!out/language/main.cjs
+!out/cli/main.cjs
+!bin/**

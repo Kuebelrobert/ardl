@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ARDL preview harness</title>
+<link rel="stylesheet" href="../media/preview.css">
+<!-- Stand-in for the webview outside VS Code: `npm run build && node bin/ardl.cjs render examples -o out/samples`,
+     serve the project root, open test/preview-harness.html (?theme=dark for the dark theme). -->
+<style>
+  body.vscode-light {
+    --vscode-editor-background: #ffffff; --vscode-editor-foreground: #1f1f1f; --vscode-descriptionForeground: #616161;
+    --vscode-toolbar-hoverBackground: #e8e8e8; --vscode-button-secondaryBackground: #e5e5e5; --vscode-panel-border: #e5e5e5;
+    --vscode-font-family: -apple-system, "Segoe UI", sans-serif; --vscode-font-size: 13px;
+  }
+  body.vscode-dark {
+    --vscode-editor-background: #1f1f1f; --vscode-editor-foreground: #cccccc; --vscode-descriptionForeground: #9d9d9d;
+    --vscode-toolbar-hoverBackground: #2b2b2b; --vscode-button-secondaryBackground: #313131; --vscode-panel-border: #2b2b2b;
+    --vscode-foreground: #cccccc; --vscode-font-family: -apple-system, "Segoe UI", sans-serif; --vscode-font-size: 13px;
+  }
+</style>
+</head>
+<body>
+<div id="toolbar">
+  <div id="tabs" role="tablist"></div>
+  <div class="spacer"></div>
+  <button id="zoom-out" title="Zoom out">−</button>
+  <button id="zoom-fit" title="Fit to window">Fit</button>
+  <button id="zoom-in" title="Zoom in">+</button>
+  <button id="export" title="Save this view as SVG">Export SVG</button>
+</div>
+<div id="message"></div>
+<div id="viewport"><div id="canvas"></div></div>
+<script>
+  const theme = new URLSearchParams(location.search).get('theme') === 'dark' ? 'vscode-dark' : 'vscode-light';
+  document.body.classList.add(theme);
+  window.posted = [];
+  window.acquireVsCodeApi = () => ({ getState: () => undefined, setState: () => {}, postMessage: m => window.posted.push(m) });
+  const views = [['BodyComposition', 'Body composition'], ['LightCtrlDetail', 'LightCtrl: ports and runnables'], ['NvMDetail', 'NvMDetail'], ['BswStack', 'Basic software']];
+  Promise.all(views.map(([id]) => fetch(`../out/samples/light-control.${id}.svg`).then(r => r.text())))
+    .then(svgs => window.postMessage({ type: 'diagrams', file: 'light-control.ardl', diagrams: views.map(([id, title], i) => ({ id, title, svg: svgs[i] })) }, '*'));
+</script>
+<script src="../media/preview.js"></script>
+</body>
+</html>

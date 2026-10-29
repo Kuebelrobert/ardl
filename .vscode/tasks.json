@@ -1,0 +1,13 @@
+{
+    // `npm run build`: Langium generator, type check, esbuild bundles.
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "build",
+            "type": "npm",
+            "script": "build",
+            "group": { "kind": "build", "isDefault": true },
+            "problemMatcher": ["$tsc"]
+        }
+    ]
+}

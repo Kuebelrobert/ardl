@@ -1,0 +1,133 @@
+// Light control ECU, modelled after the LightCtrl example of the
+// "AUTOSAR on ThreadX" snippets.
+
+// ------------------------------------------------------------ interfaces
+
+interface sr Speed       { Value: uint16 }
+interface sr OutsideTemp { Value: sint16 }
+interface sr LampState   { State: boolean }
+interface sr WheelSpeed  { Value: uint16[4] }
+
+interface cs Calib {
+    GetValue(in id: uint16, out value: uint32): Std_ReturnType
+}
+
+interface cs NvM_Service {
+    WriteBlock(in blockId: uint16): Std_ReturnType
+    GetErrorStatus(in blockId: uint16, out status: NvM_RequestResultType): Std_ReturnType
+}
+
+interface mode PowerMode { modes STARTUP, RUN, POST_RUN, SHUTDOWN }
+
+interface param LightParams {
+    SpeedHyst: uint16
+    LampOnDelay: uint16
+}
+
+// ------------------------------------------------------------ application
+
+swc sensorActuator WheelSensor {
+    pport PpWheelSpeed : WheelSpeed
+    runnable R_Sample every 5ms writes PpWheelSpeed
+}
+
+swc application SpeedCalc {
+    rport RpWheelSpeed : WheelSpeed
+    pport PpSpeed      : Speed
+    runnable R_Calc on data RpWheelSpeed reads RpWheelSpeed writes PpSpeed
+}
+
+swc application LightCtrl {
+    rport  RpSpeed       : Speed
+    rport  RpOutsideTemp : OutsideTemp
+    rport  RpPowerMode   : PowerMode
+    rport  RpCalib       : Calib
+    rport  RpNvM         : NvM_Service
+    rport  RpParams      : LightParams
+    pport  PpLamp        : LampState
+
+    runnable R_Init    on init calls RpCalib
+    runnable R_Control every 10ms reads RpSpeed, RpOutsideTemp, RpParams writes PpLamp
+    runnable R_Mode    on mode RpPowerMode calls RpNvM
+}
+
+swc sensorActuator LampDriver {
+    rport RpLamp : LampState
+    runnable R_Drive on data RpLamp reads RpLamp
+}
+
+swc parameter LightCalibration {
+    pport PpParams : LightParams
+}
+
+swc service CalibService {
+    pport PpCalib : Calib
+    runnable R_GetValue on call PpCalib
+}
+
+swc service ModeManager {
+    pport PpPowerMode : PowerMode
+    runnable R_Main every 10ms switches PpPowerMode
+}
+
+composition Body {
+    rport OutsideTemp : OutsideTemp
+    pport Lamp        : LampState
+
+    prototype WheelSensor
+    prototype SpeedCalc
+    prototype LightCtrl
+    prototype LampDriver
+    prototype LightCalibration
+    prototype CalibService
+    prototype ModeManager
+    prototype nvm: NvM
+
+    connect WheelSensor.PpWheelSpeed -> SpeedCalc.RpWheelSpeed
+    connect SpeedCalc.PpSpeed        -> LightCtrl.RpSpeed
+    connect OutsideTemp              -> LightCtrl.RpOutsideTemp
+    connect ModeManager.PpPowerMode  -> LightCtrl.RpPowerMode
+    connect CalibService.PpCalib     -> LightCtrl.RpCalib
+    connect nvm.Service              -> LightCtrl.RpNvM
+    connect LightCalibration.PpParams -> LightCtrl.RpParams
+    connect LightCtrl.PpLamp         -> LampDriver.RpLamp
+    connect LightCtrl.PpLamp         -> Lamp
+}
+
+// ------------------------------------------------------------ basic software
+
+bsw EcuM  layer services uses BswM, Mcu
+bsw BswM  layer services uses NvM, ComM
+bsw SchM  layer services
+bsw Det   layer services
+bsw Com   layer services uses PduR
+bsw PduR  layer services uses CanIf, CanTp
+bsw ComM  layer services uses CanSM
+bsw CanSM layer services uses CanIf
+bsw Xcp   layer services uses CanIf
+
+bsw NvM layer services uses MemIf {
+    pport Service : NvM_Service
+    runnable NvM_MainFunction every 10ms
+    runnable NvM_WriteBlock on call Service
+}
+
+bsw MemIf layer ecual uses Fee
+bsw Fee   layer ecual uses Fls
+bsw CanIf layer ecual uses Can
+bsw IoHwAb layer ecual uses Dio, Adc
+
+bsw Mcu layer mcal
+bsw Can layer mcal
+bsw Fls layer mcal
+bsw Dio layer mcal
+bsw Adc layer mcal
+
+bsw ThreadXShim layer cdd uses Mcu
+
+// ------------------------------------------------------------ views
+
+view BodyComposition composition Body title "Body composition"
+view LightCtrlDetail component LightCtrl title "LightCtrl: ports and runnables"
+view NvMDetail component NvM
+view BswStack layers title "Basic software"

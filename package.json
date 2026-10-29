@@ -1,0 +1,96 @@
+{
+  "name": "ardl",
+  "displayName": "ARDL – AUTOSAR Design Language",
+  "description": "Lightweight design-as-code for AUTOSAR ASW and BSW, with live diagram preview",
+  "version": "0.1.0",
+  "publisher": "kuebelrobert",
+  "license": "MIT",
+  "type": "module",
+  "engines": {
+    "vscode": "^1.91.0",
+    "node": ">=20"
+  },
+  "categories": [
+    "Programming Languages",
+    "Visualization"
+  ],
+  "main": "./out/extension/main.cjs",
+  "bin": {
+    "ardl": "./bin/ardl.cjs"
+  },
+  "activationEvents": [],
+  "contributes": {
+    "languages": [
+      {
+        "id": "ardl",
+        "aliases": [
+          "ARDL",
+          "ardl"
+        ],
+        "extensions": [
+          ".ardl"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "ardl",
+        "scopeName": "source.ardl",
+        "path": "./syntaxes/ardl.tmLanguage.json"
+      }
+    ],
+    "commands": [
+      {
+        "command": "ardl.openPreview",
+        "title": "ARDL: Open Diagram Preview to the Side",
+        "icon": "$(open-preview)"
+      },
+      {
+        "command": "ardl.exportSvg",
+        "title": "ARDL: Export Diagrams as SVG"
+      }
+    ],
+    "menus": {
+      "editor/title": [
+        {
+          "command": "ardl.openPreview",
+          "when": "editorLangId == ardl",
+          "group": "navigation"
+        }
+      ]
+    },
+    "keybindings": [
+      {
+        "command": "ardl.openPreview",
+        "key": "ctrl+k v",
+        "mac": "cmd+k v",
+        "when": "editorLangId == ardl"
+      }
+    ]
+  },
+  "scripts": {
+    "langium:generate": "langium generate",
+    "typecheck": "tsc --noEmit",
+    "build": "npm run langium:generate && npm run typecheck && node esbuild.mjs",
+    "watch": "node esbuild.mjs --watch",
+    "test": "vitest run",
+    "check:examples": "node bin/ardl.cjs check examples",
+    "package": "vsce package --no-dependencies --allow-missing-repository"
+  },
+  "dependencies": {
+    "elkjs": "^0.12.1",
+    "langium": "~4.4.0",
+    "vscode-languageclient": "^10.1.2",
+    "vscode-languageserver": "~10.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/vscode": "~1.91.0",
+    "@vscode/vsce": "^3.0.0",
+    "esbuild": "^0.25.0",
+    "langium-cli": "~4.4.0",
+    "typescript": "~5.8.0",
+    "vitest": "^3.0.0"
+  }
+}

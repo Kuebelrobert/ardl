@@ -1,0 +1,61 @@
+{
+  "name": "ardl",
+  "scopeName": "source.ardl",
+  "fileTypes": [
+    ".ardl"
+  ],
+  "patterns": [
+    {
+      "include": "#comments"
+    },
+    {
+      "name": "keyword.control.ardl",
+      "match": "\\b(ecuAbstraction|sensorActuator|complexDriver|application|composition|component|interface|parameter|prototype|runnable|services|switches|connect|service|layers|prport|writes|calls|ecual|every|inout|layer|modes|param|pport|reads|rport|title|call|data|init|mcal|mode|uses|view|bsw|cdd|out|swc|cs|in|nv|on|sr)\\b"
+    },
+    {
+      "name": "string.quoted.double.ardl",
+      "begin": "\"",
+      "end": "\"",
+      "patterns": [
+        {
+          "include": "#string-character-escape"
+        }
+      ]
+    }
+  ],
+  "repository": {
+    "comments": {
+      "patterns": [
+        {
+          "name": "comment.block.ardl",
+          "begin": "/\\*",
+          "beginCaptures": {
+            "0": {
+              "name": "punctuation.definition.comment.ardl"
+            }
+          },
+          "end": "\\*/",
+          "endCaptures": {
+            "0": {
+              "name": "punctuation.definition.comment.ardl"
+            }
+          }
+        },
+        {
+          "begin": "//",
+          "beginCaptures": {
+            "1": {
+              "name": "punctuation.whitespace.comment.leading.ardl"
+            }
+          },
+          "end": "(?=$)",
+          "name": "comment.line.ardl"
+        }
+      ]
+    },
+    "string-character-escape": {
+      "name": "constant.character.escape.ardl",
+      "match": "\\\\(x[0-9A-Fa-f]{2}|u[0-9A-Fa-f]{4}|u\\{[0-9A-Fa-f]+\\}|[0-2][0-7]{0,2}|3[0-6][0-7]?|37[0-7]?|[4-7][0-7]?|.|$)"
+    }
+  }
+}

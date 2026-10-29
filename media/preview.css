@@ -1,0 +1,126 @@
+/*
+ * Styles of the ARDL diagram preview webview.
+ *
+ * Two jobs: lay out the toolbar and the scrollable diagram area with VS Code's
+ * own theme variables (--vscode-*), and theme the SVGs by setting the
+ * --ardl-* variables that their embedded stylesheet reads (see STYLE in
+ * src/diagram/svg.ts). Light themes use the SVG defaults; dark and
+ * high-contrast themes get the darker palette below.
+ */
+
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    background: var(--vscode-editor-background);
+    color: var(--vscode-editor-foreground);
+    font-family: var(--vscode-font-family);
+    font-size: var(--vscode-font-size);
+}
+
+/* Toolbar on top, diagram area filling the rest. */
+body {
+    display: flex;
+    flex-direction: column;
+    /* Background, text and font of the diagrams follow the editor theme. */
+    --ardl-bg: var(--vscode-editor-background);
+    --ardl-fg: var(--vscode-editor-foreground);
+    --ardl-muted: var(--vscode-descriptionForeground);
+    --ardl-font: var(--vscode-font-family);
+}
+
+/* VS Code puts vscode-light / vscode-dark / vscode-high-contrast on <body>.
+   Dark fills with brighter strokes keep the light palette's hue per kind. */
+body.vscode-dark, body.vscode-high-contrast {
+    --ardl-composition: #1f242b;
+    --ardl-composition-stroke: #6e7681;
+    --ardl-app: #13233b; --ardl-app-stroke: #5a8fd8;
+    --ardl-sa: #0f2b29; --ardl-sa-stroke: #3fb3a5;
+    --ardl-svc: #261b38; --ardl-svc-stroke: #a57be0;
+    --ardl-prm: #24272c; --ardl-prm-stroke: #8b949e;
+    --ardl-ecual: #13291b; --ardl-ecual-stroke: #4fb06f;
+    --ardl-mcal: #331a18; --ardl-mcal-stroke: #e0675a;
+    --ardl-cdd: #30260f; --ardl-cdd-stroke: #d6a23a;
+    --ardl-rte: #3a2a17;
+    --ardl-runnable: #1c2128; --ardl-runnable-stroke: #8b949e;
+    --ardl-port-stroke: #c9d1d9;
+    --ardl-sr: #58a6ff; --ardl-cs: #f0a33a; --ardl-mode: #c38bff; --ardl-nv: #3fb950; --ardl-param: #8b949e;
+    --ardl-edge: #8b949e; --ardl-error: #f85149;
+}
+
+/* View tabs on the left, zoom and export on the right. */
+#toolbar {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 6px 8px;
+    border-bottom: 1px solid var(--vscode-panel-border, transparent);
+    flex: none;
+}
+
+#tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px;
+}
+
+.spacer {
+    flex: 1;
+}
+
+button {
+    font: inherit;
+    color: var(--vscode-foreground);
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    padding: 3px 9px;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+button:hover {
+    background: var(--vscode-toolbar-hoverBackground);
+}
+
+button:focus-visible {
+    outline: 1px solid var(--vscode-focusBorder);
+}
+
+.tab.active {
+    background: var(--vscode-button-secondaryBackground, var(--vscode-toolbar-activeBackground));
+    color: var(--vscode-button-secondaryForeground, var(--vscode-foreground));
+}
+
+#export {
+    border-color: var(--vscode-button-border, var(--vscode-panel-border));
+}
+
+/* "No views yet" and error messages; takes no space when empty. */
+#message:not(:empty) {
+    padding: 8px 12px;
+    color: var(--vscode-descriptionForeground);
+}
+
+/* Scrollable area; drag to pan (see media/preview.js). */
+#viewport {
+    flex: 1;
+    overflow: auto;
+    cursor: grab;
+}
+
+#viewport.dragging {
+    cursor: grabbing;
+    user-select: none;
+}
+
+/* Sized to the SVG, so the viewport scrolls instead of squeezing the diagram. */
+#canvas {
+    padding: 12px;
+    width: max-content;
+}
+
+#canvas svg {
+    display: block;
+}

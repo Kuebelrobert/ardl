@@ -1,0 +1,14 @@
+{
+  "projectName": "Ardl",
+  "languages": [
+    {
+      "id": "ardl",
+      "grammar": "src/language/ardl.langium",
+      "fileExtensions": [".ardl"],
+      "textMate": {
+        "out": "syntaxes/ardl.tmLanguage.json"
+      }
+    }
+  ],
+  "out": "src/language/generated"
+}

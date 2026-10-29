@@ -1,0 +1,29 @@
+{
+    // Debug configurations for developing ARDL itself.
+    // "Run Extension" starts a second VS Code window (Extension Development Host)
+    // with the extension loaded from this folder and the examples opened.
+    // "Attach to Language Server" connects to the server process, which the
+    // client starts with --inspect=6009 in debug mode (src/extension/main.ts).
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Run Extension",
+            "type": "extensionHost",
+            "request": "launch",
+            "args": [
+                "--extensionDevelopmentPath=${workspaceFolder}",
+                "${workspaceFolder}/examples"
+            ],
+            "outFiles": ["${workspaceFolder}/out/**/*.cjs"],
+            "preLaunchTask": "build"
+        },
+        {
+            "name": "Attach to Language Server",
+            "type": "node",
+            "request": "attach",
+            "port": 6009,
+            "restart": true,
+            "outFiles": ["${workspaceFolder}/out/**/*.cjs"]
+        }
+    ]
+}
