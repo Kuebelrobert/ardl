@@ -111,7 +111,7 @@ npm run build            # Langium generator, type check, esbuild bundles in out
 npm test                 # vitest: parser, validation, rendering
 npm run check:examples   # the CLI on examples/
 npm run package          # ardl-<version>.vsix
-code --install-extension ardl-0.1.0.vsix
+code --install-extension ardl-0.2.0.vsix --force
 ```
 
 To debug, open this folder in VS Code and start **Run Extension** (`.vscode/launch.json`). It builds, then opens a second window with the extension loaded and `examples/` open. **Attach to Language Server** connects the debugger to the server process.
