@@ -201,7 +201,8 @@ export function legend(x: number, y: number): { svg: string; height: number } {
  * Class scheme:
  * - `kind-<swc kind>` / `layer-<bsw layer>`: box colors,
  * - `k-<interface kind>`: port glyph, edge and arrowhead colors,
- * - `upward`: layering violation in the layers view.
+ * - `upward`: layering violation in the layers view,
+ * - `os-<object kind>`: shapes, edges and arrowheads of the OS view.
  */
 const STYLE = `
 .ardl{font-family:var(--ardl-font,-apple-system,"Segoe UI",Helvetica,Arial,sans-serif);font-size:12px}
@@ -249,4 +250,18 @@ const STYLE = `
 .ardl .arrow.k-nv{fill:var(--ardl-nv,#1f8a4c)}
 .ardl .arrow.k-param{fill:var(--ardl-param,#6e7781)}
 .ardl .arrow.upward{fill:var(--ardl-error,#cf222e)}
+.ardl .os-task{fill:var(--ardl-app,#e7f0fd);stroke:var(--ardl-app-stroke,#3b6fb6)}
+.ardl .os-isr{fill:var(--ardl-mcal,#fde9e7);stroke:var(--ardl-mcal-stroke,#c0392b)}
+.ardl .os-divider{stroke:var(--ardl-app-stroke,#3b6fb6);stroke-width:.8;opacity:.5}
+.ardl text.runs{font-size:11px;font-family:var(--ardl-mono,ui-monospace,Menlo,Consolas,monospace)}
+.ardl .os-object{fill:var(--ardl-bg,#ffffff);stroke-width:1.4}
+.ardl .os-slot{stroke:var(--ardl-sr,#2f6fd0);stroke-width:1}
+.ardl .os-object.os-mutex,.ardl .edge.os-mutex{stroke:var(--ardl-cs,#c26a00)}
+.ardl .os-object.os-semaphore,.ardl .edge.os-semaphore{stroke:var(--ardl-mode,#8a3fc7)}
+.ardl .os-object.os-queue,.ardl .edge.os-queue{stroke:var(--ardl-sr,#2f6fd0)}
+.ardl .os-object.os-event,.ardl .edge.os-event{stroke:var(--ardl-nv,#1f8a4c)}
+.ardl .edge.os-mutex{stroke-dasharray:6 3}
+.ardl .arrow.os-semaphore{fill:var(--ardl-mode,#8a3fc7)}
+.ardl .arrow.os-queue{fill:var(--ardl-sr,#2f6fd0)}
+.ardl .arrow.os-event{fill:var(--ardl-nv,#1f8a4c)}
 `;

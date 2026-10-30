@@ -11,7 +11,9 @@
  * - connectors respect port directions and interface types,
  * - every required port of a prototype is connected,
  * - compositions do not contain themselves, directly or indirectly,
- * - BSW modules follow the layered architecture.
+ * - BSW modules follow the layered architecture,
+ * - OS objects fit the profile, are used consistently, are locked in one
+ *   order, and every runnable of a mapped component is mapped exactly once.
  *
  * Severity convention: `error` for models that cannot be correct, `warning`
  * for models that are probably incomplete, `info` for things that are legal
@@ -34,13 +36,33 @@ import {
     type Component,
     type Composition,
     type Interface,
+    type Isr,
     type Model,
+    type Os,
+    type OsAccess,
+    type OsAccessKind,
+    type OsObject,
     type Port,
     type PortRef,
-    type Runnable
+    type Runnable,
+    type RunnableOwner,
+    type RunnableRef,
+    type Task
 } from './generated/ast.js';
 import type { ArdlServices } from './ardl-module.js';
-import { DATA_KINDS, isProvided, isRequired, isUpwardDependency, skipsEcuAbstraction } from './ardl-semantics.js';
+import {
+    ACCESS_TARGET,
+    BLOCKING_ACCESSES,
+    DATA_KINDS,
+    MUTEX_PROTOCOLS,
+    OS_PROFILES,
+    isOsekLike,
+    isProvided,
+    isRequired,
+    isUpwardDependency,
+    mutexProtocol,
+    skipsEcuAbstraction
+} from './ardl-semantics.js';
 
 /**
  * Registers the checks of {@link ArdlValidator} with Langium's validation registry.
@@ -54,7 +76,10 @@ export function registerValidationChecks(services: ArdlServices): void {
         Swc: validator.checkComponentMembers,
         Bsw: [validator.checkComponentMembers, validator.checkBswDependencies],
         Composition: [validator.checkComponentMembers, validator.checkComposition],
-        Runnable: validator.checkRunnable
+        Runnable: validator.checkRunnable,
+        Os: validator.checkOs,
+        Isr: validator.checkIsr,
+        OsAccess: validator.checkOsAccess
     };
     // Passing the validator as `thisObj` lets the checks use `this.indexManager`.
     services.validation.ValidationRegistry.register(checks, validator);
@@ -309,6 +334,202 @@ export class ArdlValidator {
             }
         }
     }
+
+    /**
+     * Checks of one `os` block that need all of its tasks, ISRs and objects at
+     * once. All of them are linear in the size of the block (plus the
+     * runnables of the mapped components), so they stay cheap for large ECUs.
+     */
+    checkOs(os: Os, accept: ValidationAcceptor): void {
+        if (os.profile && !(OS_PROFILES as readonly string[]).includes(os.profile)) {
+            accept('error', `Unknown OS profile '${os.profile}'. Use one of: ${OS_PROFILES.join(', ')}.`, { node: os, property: 'profile' });
+        }
+        reportDuplicates([...os.tasks, ...os.isrs, ...os.objects], 'OS element', accept);
+        this.checkOsObjects(os, accept);
+        this.checkLockOrder(os, accept);
+        this.checkRunnableMapping(os, accept);
+    }
+
+    /** Profile rules per object, and whether every object is used the way its kind needs. */
+    private checkOsObjects(os: Os, accept: ValidationAcceptor): void {
+        // Who uses each object, and how.
+        const users = new Map<OsObject, Array<{ user: Task | Isr; kind: OsAccessKind }>>();
+        for (const user of [...os.tasks, ...os.isrs]) {
+            for (const access of user.accesses) {
+                for (const ref of access.objects) {
+                    if (ref.ref) {
+                        users.set(ref.ref, [...users.get(ref.ref) ?? [], { user, kind: access.kind }]);
+                    }
+                }
+            }
+        }
+        const osek = isOsekLike(os);
+        const rtos = os.profile === 'threadx' || os.profile === 'freertos';
+        for (const object of os.objects) {
+            const uses = users.get(object) ?? [];
+            const has = (kind: OsAccessKind) => uses.some(u => u.kind === kind);
+            const names = (kind: OsAccessKind) => [...new Set(uses.filter(u => u.kind === kind).map(u => u.user.name))];
+            const at = { node: object, property: 'name' } as const;
+            if (uses.length === 0) {
+                accept('warning', `'${object.name}' is not used by any task or ISR.`, at);
+            }
+            switch (object.$type) {
+                case 'Mutex': {
+                    const protocol = mutexProtocol(object);
+                    if (!(MUTEX_PROTOCOLS as readonly string[]).includes(protocol)) {
+                        accept('error', `Unknown protocol '${protocol}'. Use one of: ${MUTEX_PROTOCOLS.join(', ')}.`, { node: object, property: 'protocol' });
+                    } else if (osek && protocol !== 'ceiling') {
+                        accept('error', `${os.profile} resources use the priority ceiling protocol; '${protocol}' is not available.`, { node: object, property: 'protocol' });
+                    } else if (rtos && protocol === 'ceiling') {
+                        accept('warning', `${os.profile} mutexes support priority inheritance, not priority ceiling.`, { node: object, property: 'protocol' });
+                    }
+                    const priorities = new Set(uses.map(u => u.user.priority));
+                    if (protocol === 'none' && priorities.size > 1) {
+                        accept('warning', `'${object.name}' is shared by tasks of different priority without a protocol: priority inversion. Use 'protocol inherit' or 'protocol ceiling'.`, at);
+                    }
+                    break;
+                }
+                case 'Semaphore':
+                    if (osek) {
+                        accept('error', `${os.profile} has no semaphores. Use an event for signalling or a mutex (resource) for mutual exclusion.`, at);
+                    } else if (has('takes') && !has('gives') && !object.count) {
+                        accept('warning', `'${object.name}' is taken but never given and has no initial count: ${names('takes').join(', ')} block forever.`, at);
+                    }
+                    break;
+                case 'Queue':
+                    if (has('sends') && !has('receives')) {
+                        accept('warning', `'${object.name}' is sent to but nobody receives from it.`, at);
+                    } else if (has('receives') && !has('sends')) {
+                        accept('warning', `'${object.name}' is received from but nobody sends to it.`, at);
+                    }
+                    break;
+                case 'Event':
+                    if (has('waits') && !has('sets')) {
+                        accept('warning', `'${object.name}' is never set: ${names('waits').join(', ')} wait forever.`, at);
+                    } else if (has('sets') && !has('waits')) {
+                        accept('warning', `'${object.name}' is set but no task waits for it.`, at);
+                    }
+                    if (osek && names('waits').length > 1) {
+                        accept('error', `In ${os.profile} an event belongs to one task; '${object.name}' is waited for by ${names('waits').join(', ')}.`, at);
+                    }
+                    break;
+            }
+        }
+    }
+
+    /**
+     * `locks A, B` means B is taken while A is held. If one task locks A then B
+     * and another B then A, both can end up waiting for each other. The check
+     * builds the graph of these orders and warns at every order that lies on a
+     * cycle.
+     */
+    private checkLockOrder(os: Os, accept: ValidationAcceptor): void {
+        const after = new Map<string, Set<string>>();
+        const orders: Array<{ access: OsAccess; from: string; to: string; index: number }> = [];
+        for (const user of [...os.tasks, ...os.isrs]) {
+            for (const access of user.accesses.filter(a => a.kind === 'locks')) {
+                for (let i = 1; i < access.objects.length; i++) {
+                    const from = access.objects[i - 1].$refText;
+                    const to = access.objects[i].$refText;
+                    after.set(from, (after.get(from) ?? new Set()).add(to));
+                    orders.push({ access, from, to, index: i });
+                }
+            }
+        }
+        // Can `from` be reached again from `to`? Depth-first over the few mutexes of one OS.
+        const reaches = (start: string, goal: string): boolean => {
+            const seen = new Set<string>();
+            const stack = [start];
+            while (stack.length) {
+                const n = stack.pop()!;
+                if (n === goal) return true;
+                if (!seen.has(n)) {
+                    seen.add(n);
+                    stack.push(...after.get(n) ?? []);
+                }
+            }
+            return false;
+        };
+        for (const { access, from, to, index } of orders) {
+            if (reaches(to, from)) {
+                accept('warning', `Lock order ${from} → ${to} conflicts with ${to} → … → ${from} elsewhere: possible deadlock.`,
+                    { node: access, property: 'objects', index });
+            }
+        }
+    }
+
+    /**
+     * A runnable runs in exactly one task. Every component with at least one
+     * mapped runnable should have all of them mapped, except pure servers
+     * (`on call` only), which run in the caller's context. Components without
+     * any mapping are not reported: they may belong to another ECU.
+     * A periodic runnable in a periodic task needs a period that is a multiple
+     * of the task's period.
+     */
+    private checkRunnableMapping(os: Os, accept: ValidationAcceptor): void {
+        const mappedTo = new Map<Runnable, Task>();
+        const firstRef = new Map<RunnableOwner, RunnableRef>();
+        for (const task of os.tasks) {
+            for (const ref of task.runs) {
+                const runnable = ref.runnable.ref;
+                const owner = ref.component.ref;
+                if (!runnable || !owner) {
+                    continue;
+                }
+                const other = mappedTo.get(runnable);
+                if (other) {
+                    accept('warning', `'${owner.name}.${runnable.name}' is already mapped to '${other.name}'.`, { node: ref });
+                } else {
+                    mappedTo.set(runnable, task);
+                }
+                if (!firstRef.has(owner)) {
+                    firstRef.set(owner, ref);
+                }
+                const runnablePeriod = runnable.triggers.find(isTimingTrigger)?.period;
+                if (runnablePeriod && task.period && !isMultiple(runnablePeriod, task.period)) {
+                    accept('warning', `'${runnable.name}' runs every ${runnablePeriod}, which is not a multiple of the ${task.period} period of '${task.name}'.`, { node: ref });
+                }
+            }
+        }
+        for (const [owner, ref] of firstRef) {
+            const missing = owner.runnables.filter(r => !mappedTo.has(r) && !(r.triggers.length > 0 && r.triggers.every(isOperationTrigger)));
+            if (missing.length) {
+                accept('warning', `Runnables of '${owner.name}' not mapped to a task: ${missing.map(r => r.name).join(', ')}.`, { node: ref, property: 'component' });
+            }
+        }
+    }
+
+    /**
+     * ISRs: category 1 ISRs bypass the OS and must not use OS objects, and no
+     * ISR may block. AUTOSAR/OSEK allow category 2 ISRs to take resources;
+     * RTOS mutexes cannot be locked from interrupt context.
+     */
+    checkIsr(isr: Isr, accept: ValidationAcceptor): void {
+        if (isr.cat !== undefined && isr.cat !== 1 && isr.cat !== 2) {
+            accept('error', 'ISR category is 1 or 2.', { node: isr, property: 'cat' });
+        }
+        isr.accesses.forEach(access => {
+            if (isr.cat === 1) {
+                accept('error', `A category 1 ISR must not use OS objects; make '${isr.name}' 'cat 2'.`, { node: access, property: 'kind' });
+            } else if (BLOCKING_ACCESSES.includes(access.kind)) {
+                accept('error', `An ISR must not block: '${access.kind}' can wait.`, { node: access, property: 'kind' });
+            } else if (access.kind === 'locks' && !isOsekLike(isr.$container)) {
+                accept('error', `Mutexes cannot be locked from an ISR in ${isr.$container.profile ?? 'a generic'} OS.`, { node: access, property: 'kind' });
+            }
+        });
+    }
+
+    /** `locks` needs a mutex, `takes`/`gives` a semaphore, `sends`/`receives` a queue, `waits`/`sets` an event. */
+    checkOsAccess(access: OsAccess, accept: ValidationAcceptor): void {
+        const expected = ACCESS_TARGET[access.kind];
+        access.objects.forEach((ref, index) => {
+            const object = ref.ref;
+            if (object && object.$type !== expected) {
+                accept('error', `'${access.kind}' needs a ${expected.toLowerCase()}; '${object.name}' is a ${object.$type.toLowerCase()}.`,
+                    { node: access, property: 'objects', index });
+            }
+        });
+    }
 }
 
 /**
@@ -328,6 +549,13 @@ function containsComposition(outer: Composition, wanted: Composition, visited: S
         const type = p.type.ref;
         return isComposition(type) && containsComposition(type, wanted, visited);
     });
+}
+
+/** True if duration `a` is a whole multiple of duration `b` (both like `10ms`, `500us`, `1s`). */
+function isMultiple(a: string, b: string): boolean {
+    const us = (d: string) => parseFloat(d) * (d.endsWith('us') ? 1 : d.endsWith('ms') ? 1000 : 1_000_000);
+    const ratio = us(a) / us(b);
+    return Math.abs(ratio - Math.round(ratio)) < 1e-9 && ratio >= 1;
 }
 
 /** `proto.Port` for prototype ports, `Port` for ports of the composition itself; uses the source text so it works for unresolved references too. */

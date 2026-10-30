@@ -12,6 +12,8 @@ import {
     isComposition,
     isCompositionView,
     isLayersView,
+    isOs,
+    isOsView,
     isSwc,
     isView,
     type Model
@@ -19,6 +21,7 @@ import {
 import { renderComponent } from './component-view.js';
 import { renderComposition } from './composition-view.js';
 import { renderLayers } from './layers-view.js';
+import { renderOs } from './os-view.js';
 import { esc } from './svg.js';
 
 /** One rendered view. Sent as JSON to the preview, so it holds plain data only. */
@@ -36,7 +39,8 @@ export interface RenderedDiagram {
  *
  * A document with `view` declarations renders exactly those, in source order.
  * A document without views gets default views: one per composition, one
- * layers view of its BSW modules and, if it has neither, one per SWC. That way
+ * layers view of its BSW modules, one per `os` and, if it has none of these,
+ * one per SWC. That way
  * a new file shows something before the user has written any view.
  *
  * @param model the document to render.
@@ -65,7 +69,11 @@ export async function renderDiagrams(model: Model, workspace: Model[]): Promise<
         if (bsw.length) {
             await safely('layers', 'Basic software', () => renderLayers(bsw, 'Basic software'));
         }
-        if (compositions.length === 0 && bsw.length === 0) {
+        const systems = model.elements.filter(isOs);
+        for (const os of systems) {
+            await safely(os.name, os.name, () => renderOs(os, os.name));
+        }
+        if (compositions.length === 0 && bsw.length === 0 && systems.length === 0) {
             for (const swc of model.elements.filter(isSwc)) {
                 await safely(swc.name, swc.name, () => renderComponent(swc, swc.name));
             }
@@ -88,6 +96,9 @@ export async function renderDiagrams(model: Model, workspace: Model[]): Promise<
                 ? view.modules.flatMap(m => m.ref ? [m.ref] : [])
                 : workspace.flatMap(m => m.elements.filter(isBsw));
             await safely(view.name, title, () => renderLayers(modules, title));
+        } else if (isOsView(view)) {
+            const os = view.os.ref;
+            if (os) await safely(view.name, title, () => renderOs(os, title));
         }
     }
     return result;

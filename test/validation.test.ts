@@ -187,3 +187,116 @@ bsw Drv layer cdd uses Det`);
         expect(layers.svg.match(/<title>Fls uses Det/g)).toHaveLength(1);
     });
 });
+
+describe('os', () => {
+    /** Two SWCs with periodic, init and server runnables to map. */
+    const SWCS = BASE + `
+swc application Ctrl {
+    pport Server : Calib
+    runnable R_Init on init
+    runnable R_Main every 10ms
+    runnable R_Get on call Server
+}`;
+
+    test('a complete mapping across tasks is valid', async () => {
+        expect(await diagnostics(SWCS + `
+os O profile threadx {
+    mutex M
+    queue Q of uint16 depth 4
+    task Init prio 9 on startup runs Ctrl.R_Init
+    task T10 prio 5 every 10ms
+        runs Ctrl.R_Main, Consumer.R
+        locks M
+        sends Q
+    task Rx prio 6 receives Q locks M
+}`)).toEqual([]);
+    });
+
+    test('runnables: unknown, mapped twice, missing in a mapped component, period mismatch', async () => {
+        const result = await diagnostics(SWCS + `
+os O {
+    task A every 20ms runs Ctrl.R_Main, Ctrl.R_Nope
+    task B every 10ms runs Ctrl.R_Main
+}`);
+        expect(result).toContain("error: Could not resolve reference to Runnable named 'R_Nope'.");
+        expect(result).toContain("warning: 'Ctrl.R_Main' is already mapped to 'A'.");
+        expect(result).toContain("warning: 'R_Main' runs every 10ms, which is not a multiple of the 20ms period of 'A'.");
+        // R_Get is a pure server and runs in the caller's context.
+        expect(result).toContain("warning: Runnables of 'Ctrl' not mapped to a task: R_Init.");
+        // Components without any mapping (Consumer) may belong to another ECU and are not reported.
+        expect(result.some(m => m.includes("'Consumer'"))).toBe(false);
+    });
+
+    test('objects: wrong access, unused, one-sided queue and event, priority inversion', async () => {
+        const result = await diagnostics(`
+os O {
+    mutex M protocol none
+    mutex Unused
+    queue Q
+    event E
+    task Hi prio 9 locks M waits E sends Q
+    task Lo prio 1 locks M takes Q
+}`);
+        expect(result).toEqual(expect.arrayContaining([
+            "warning: 'M' is shared by tasks of different priority without a protocol: priority inversion. Use 'protocol inherit' or 'protocol ceiling'.",
+            "warning: 'Unused' is not used by any task or ISR.",
+            "warning: 'Q' is sent to but nobody receives from it.",
+            "warning: 'E' is never set: Hi wait forever.",
+            "error: 'takes' needs a semaphore; 'Q' is a queue."
+        ]));
+    });
+
+    test('lock order cycles are possible deadlocks', async () => {
+        const result = await diagnostics(`
+os O {
+    mutex A
+    mutex B
+    task T1 locks A, B
+    task T2 locks B, A
+}`);
+        expect(result).toEqual([
+            'warning: Lock order A → B conflicts with B → … → A elsewhere: possible deadlock.',
+            'warning: Lock order B → A conflicts with A → … → B elsewhere: possible deadlock.'
+        ]);
+    });
+
+    test('profiles: AUTOSAR has ceiling resources and no semaphores, ISRs do not block', async () => {
+        const result = await diagnostics(`
+os O profile autosar {
+    mutex M protocol inherit
+    semaphore S
+    event E
+    task A waits E locks M takes S
+    task B waits E
+    isr I cat 2 sets E gives S locks M receives E
+    isr Fast cat 1 sets E
+}
+os P profile zephyr { }`);
+        expect(result).toEqual(expect.arrayContaining([
+            "error: autosar resources use the priority ceiling protocol; 'inherit' is not available.",
+            'error: autosar has no semaphores. Use an event for signalling or a mutex (resource) for mutual exclusion.',
+            "error: In autosar an event belongs to one task; 'E' is waited for by A, B.",
+            "error: An ISR must not block: 'receives' can wait.",
+            "error: A category 1 ISR must not use OS objects; make 'Fast' 'cat 2'.",
+            "error: Unknown OS profile 'zephyr'. Use one of: autosar, osek, threadx, freertos, generic."
+        ]));
+        // Category 2 ISRs may take AUTOSAR resources.
+        expect(result.some(m => m.includes('cannot be locked from an ISR'))).toBe(false);
+    });
+
+    test('os view lists runnables, folds long lists and draws one edge per use', async () => {
+        const runs = Array.from({ length: 12 }, (_, i) => `swc application S${i} { runnable R every 10ms }`).join('\n');
+        const [view] = await render(`${runs}
+os O {
+    queue Q
+    task T every 10ms runs ${Array.from({ length: 12 }, (_, i) => `S${i}.R`).join(', ')} sends Q sends Q
+    isr I sets E
+    event E
+    task W receives Q waits E
+}`);
+        expect(view.id).toBe('O');
+        expect(view.svg).not.toContain('layout failed');
+        expect(view.svg).toContain('+ 5 more');
+        expect(view.svg.match(/<title>T sends Q/g)).toHaveLength(1);
+    });
+});

@@ -36,8 +36,9 @@
   document.body.classList.add(theme);
   window.posted = [];
   window.acquireVsCodeApi = () => ({ getState: () => undefined, setState: () => {}, postMessage: m => window.posted.push(m) });
-  const views = [['BodyComposition', 'Body composition'], ['LightCtrlDetail', 'LightCtrl: ports and runnables'], ['NvMDetail', 'NvMDetail'], ['BswStack', 'Basic software']];
-  Promise.all(views.map(([id]) => fetch(`../out/samples/light-control.${id}.svg`).then(r => r.text())))
+  const views = [['BodyComposition', 'Body composition'], ['LightCtrlDetail', 'LightCtrl: ports and runnables'], ['NvMDetail', 'NvMDetail'], ['BswStack', 'Basic software'],
+    ['BodyTasks', 'Body OS: tasks and resources', 'light-control-os']];
+  Promise.all(views.map(([id, , file = 'light-control']) => fetch(`../out/samples/${file}.${id}.svg`).then(r => r.text())))
     .then(svgs => window.postMessage({ type: 'diagrams', file: 'light-control.ardl', diagrams: views.map(([id, title], i) => ({ id, title, svg: svgs[i] })) }, '*'));
 </script>
 <script src="../media/preview.js"></script>

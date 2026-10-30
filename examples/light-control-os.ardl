@@ -1,0 +1,35 @@
+// OS of the light control ECU. The runnables come from light-control.ardl:
+// names are global across all .ardl files, so no import is needed.
+
+os BodyOs profile threadx {
+    mutex     NvmLock   protocol inherit
+    semaphore AdcSlots  count 2
+    queue     LampCmd   of LampState depth 4
+    event     PowerDown
+
+    task Task_Init prio 30 on startup
+        runs LightCtrl.R_Init
+
+    task Task_5ms prio 20 every 5ms
+        runs WheelSensor.R_Sample, SpeedCalc.R_Calc
+        takes AdcSlots
+
+    task Task_10ms prio 10 every 10ms
+        runs LightCtrl.R_Control, ModeManager.R_Main, NvM.NvM_MainFunction
+        locks NvmLock
+        sends LampCmd
+
+    task Task_Lamp prio 15
+        runs LampDriver.R_Drive
+        receives LampCmd
+
+    task Task_Mode prio 12
+        runs LightCtrl.R_Mode
+        locks NvmLock
+        waits PowerDown
+
+    isr AdcIsr   gives AdcSlots
+    isr PowerIsr sets PowerDown
+}
+
+view BodyTasks os BodyOs title "Body OS: tasks and resources"

@@ -5,7 +5,7 @@
  * problem and what the diagrams highlight (e.g. a red upward dependency in
  * the layers view) never disagree.
  */
-import type { Bsw, BswLayer, InterfaceKind, Port } from './generated/ast.js';
+import type { Bsw, BswLayer, InterfaceKind, Mutex, Os, OsAccessKind, OsObject, Port } from './generated/ast.js';
 
 /**
  * A port provides data or a service if it is a P-port or a PR-port.
@@ -47,3 +47,27 @@ export function isUpwardDependency(user: Bsw, used: Bsw): boolean {
 export function skipsEcuAbstraction(user: Bsw, used: Bsw): boolean {
     return user.layer === 'services' && used.layer === 'mcal';
 }
+
+/** OS profiles the validator knows. `generic` makes no assumptions beyond the basics. */
+export const OS_PROFILES = ['autosar', 'osek', 'threadx', 'freertos', 'generic'] as const;
+
+/** Locking protocols of a mutex. */
+export const MUTEX_PROTOCOLS = ['ceiling', 'inherit', 'none'] as const;
+
+/** AUTOSAR OS and OSEK share the object model: resources with priority ceiling, events owned by one task, no semaphores. */
+export function isOsekLike(os: Os): boolean {
+    return os.profile === 'autosar' || os.profile === 'osek';
+}
+
+/** The protocol of a mutex: as written, or the profile's default (ceiling for AUTOSAR/OSEK resources, inheritance otherwise). */
+export function mutexProtocol(mutex: Mutex): string {
+    return mutex.protocol ?? (isOsekLike(mutex.$container) ? 'ceiling' : 'inherit');
+}
+
+/** The object type each access works on, e.g. `locks` needs a mutex. */
+export const ACCESS_TARGET: Readonly<Record<OsAccessKind, OsObject['$type']>> = {
+    locks: 'Mutex', takes: 'Semaphore', gives: 'Semaphore', sends: 'Queue', receives: 'Queue', waits: 'Event', sets: 'Event'
+};
+
+/** Accesses that can block the caller, which an ISR must not do. */
+export const BLOCKING_ACCESSES: readonly OsAccessKind[] = ['takes', 'receives', 'waits'];

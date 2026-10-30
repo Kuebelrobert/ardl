@@ -24,6 +24,7 @@ import {
     isComposition,
     isPortRef,
     isPrototype,
+    isRunnableRef,
     isSwc,
     isTrigger,
     type Bsw,
@@ -56,12 +57,13 @@ export class ArdlNameProvider extends DefaultNameProvider {
 }
 
 /**
- * Restricts which ports a reference can see:
+ * Restricts which ports and runnables a reference can see:
  *
  * - triggers and accesses of a runnable see the ports of their own component,
  * - `proto.Port` in a connector sees the ports of the prototype's component type,
  * - a bare `Port` in a connector sees the composition's own (delegation) ports,
- * - `proto` in a connector sees the prototypes of the enclosing composition.
+ * - `proto` in a connector sees the prototypes of the enclosing composition,
+ * - `Swc.Runnable` in a task's `runs` sees the runnables of that component.
  *
  * Every other reference uses Langium's default scoping (local, then global).
  */
@@ -85,6 +87,11 @@ export class ArdlScopeProvider extends DefaultScopeProvider {
                 }
                 return this.createScopeForNodes(composition.ports);
             }
+        }
+
+        if (isRunnableRef(container) && property === 'runnable') {
+            const owner = container.component.ref;
+            return owner ? this.createScopeForNodes(owner.runnables) : EMPTY_SCOPE;
         }
 
         // Triggers reference one port (`port`), accesses a list (`ports`).

@@ -31,45 +31,69 @@ export type ArdlKeywordNames =
     | "bsw"
     | "call"
     | "calls"
+    | "cat"
     | "cdd"
     | "complexDriver"
     | "component"
     | "composition"
     | "connect"
+    | "core"
+    | "count"
     | "cs"
     | "data"
+    | "depth"
     | "ecuAbstraction"
     | "ecual"
+    | "event"
     | "every"
+    | "gives"
     | "in"
     | "init"
     | "inout"
     | "interface"
+    | "isr"
     | "layer"
     | "layers"
+    | "locks"
     | "mcal"
     | "mode"
     | "modes"
+    | "mutex"
     | "nv"
+    | "of"
     | "on"
+    | "os"
     | "out"
     | "param"
     | "parameter"
     | "pport"
+    | "prio"
+    | "profile"
+    | "protocol"
     | "prototype"
     | "prport"
+    | "queue"
     | "reads"
+    | "receives"
     | "rport"
     | "runnable"
+    | "runs"
+    | "semaphore"
+    | "sends"
     | "sensorActuator"
     | "service"
     | "services"
+    | "sets"
     | "sr"
+    | "startup"
     | "swc"
     | "switches"
+    | "takes"
+    | "task"
     | "title"
     | "uses"
     | "view"
+    | "waits"
     | "writes"
     | "{"
     | "}";
@@ -271,7 +295,7 @@ export function isDataTrigger(item: unknown): item is DataTrigger {
     return reflection.isInstance(item, DataTrigger.$type);
 }
 
-export type Element = Component | Interface | View;
+export type Element = Component | Interface | Os | View;
 
 export const Element = {
     $type: 'Element'
@@ -279,6 +303,21 @@ export const Element = {
 
 export function isElement(item: unknown): item is Element {
     return reflection.isInstance(item, Element.$type);
+}
+
+export interface Event extends langium.AstNode {
+    readonly $container: Os;
+    readonly $type: 'Event';
+    name: string;
+}
+
+export const Event = {
+    $type: 'Event',
+    name: 'name'
+} as const;
+
+export function isEvent(item: unknown): item is Event {
+    return reflection.isInstance(item, Event.$type);
 }
 
 export interface InitTrigger extends langium.AstNode {
@@ -327,6 +366,29 @@ export const InterfaceMember = {
 
 export function isInterfaceMember(item: unknown): item is InterfaceMember {
     return reflection.isInstance(item, InterfaceMember.$type);
+}
+
+export interface Isr extends langium.AstNode {
+    readonly $container: Os;
+    readonly $type: 'Isr';
+    accesses: Array<OsAccess>;
+    cat?: number;
+    core?: number;
+    name: string;
+    priority?: number;
+}
+
+export const Isr = {
+    $type: 'Isr',
+    accesses: 'accesses',
+    cat: 'cat',
+    core: 'core',
+    name: 'name',
+    priority: 'priority'
+} as const;
+
+export function isIsr(item: unknown): item is Isr {
+    return reflection.isInstance(item, Isr.$type);
 }
 
 export interface LayersView extends langium.AstNode {
@@ -407,10 +469,27 @@ export function isModeTrigger(item: unknown): item is ModeTrigger {
     return reflection.isInstance(item, ModeTrigger.$type);
 }
 
-export type Name = 'call' | 'data' | 'in' | 'init' | 'inout' | 'layer' | 'mode' | 'modes' | 'out' | 'title' | string;
+export interface Mutex extends langium.AstNode {
+    readonly $container: Os;
+    readonly $type: 'Mutex';
+    name: string;
+    protocol?: string;
+}
+
+export const Mutex = {
+    $type: 'Mutex',
+    name: 'name',
+    protocol: 'protocol'
+} as const;
+
+export function isMutex(item: unknown): item is Mutex {
+    return reflection.isInstance(item, Mutex.$type);
+}
+
+export type Name = 'call' | 'cat' | 'core' | 'count' | 'data' | 'depth' | 'event' | 'in' | 'init' | 'inout' | 'layer' | 'mode' | 'modes' | 'of' | 'out' | 'prio' | 'protocol' | 'queue' | 'startup' | 'title' | string;
 
 export function isName(item: unknown): item is Name {
-    return item === 'data' || item === 'init' || item === 'call' || item === 'mode' || item === 'modes' || item === 'layer' || item === 'title' || item === 'in' || item === 'out' || item === 'inout' || (typeof item === 'string' && (/[_a-zA-Z][\w]*/.test(item)));
+    return item === 'data' || item === 'init' || item === 'call' || item === 'mode' || item === 'modes' || item === 'layer' || item === 'title' || item === 'in' || item === 'out' || item === 'inout' || item === 'core' || item === 'count' || item === 'depth' || item === 'event' || item === 'queue' || item === 'prio' || item === 'protocol' || item === 'startup' || item === 'cat' || item === 'of' || (typeof item === 'string' && (/[_a-zA-Z][\w]*/.test(item)));
 }
 
 export interface Operation extends langium.AstNode {
@@ -445,6 +524,81 @@ export const OperationTrigger = {
 
 export function isOperationTrigger(item: unknown): item is OperationTrigger {
     return reflection.isInstance(item, OperationTrigger.$type);
+}
+
+export interface Os extends langium.AstNode {
+    readonly $container: Model;
+    readonly $type: 'Os';
+    isrs: Array<Isr>;
+    name: string;
+    objects: Array<OsObject>;
+    profile?: string;
+    tasks: Array<Task>;
+}
+
+export const Os = {
+    $type: 'Os',
+    isrs: 'isrs',
+    name: 'name',
+    objects: 'objects',
+    profile: 'profile',
+    tasks: 'tasks'
+} as const;
+
+export function isOs(item: unknown): item is Os {
+    return reflection.isInstance(item, Os.$type);
+}
+
+export interface OsAccess extends langium.AstNode {
+    readonly $container: Isr | Task;
+    readonly $type: 'OsAccess';
+    kind: OsAccessKind;
+    objects: Array<langium.Reference<OsObject>>;
+}
+
+export const OsAccess = {
+    $type: 'OsAccess',
+    kind: 'kind',
+    objects: 'objects'
+} as const;
+
+export function isOsAccess(item: unknown): item is OsAccess {
+    return reflection.isInstance(item, OsAccess.$type);
+}
+
+export type OsAccessKind = 'gives' | 'locks' | 'receives' | 'sends' | 'sets' | 'takes' | 'waits';
+
+export function isOsAccessKind(item: unknown): item is OsAccessKind {
+    return item === 'locks' || item === 'takes' || item === 'gives' || item === 'sends' || item === 'receives' || item === 'waits' || item === 'sets';
+}
+
+export type OsObject = Event | Mutex | Queue | Semaphore;
+
+export const OsObject = {
+    $type: 'OsObject'
+} as const;
+
+export function isOsObject(item: unknown): item is OsObject {
+    return reflection.isInstance(item, OsObject.$type);
+}
+
+export interface OsView extends langium.AstNode {
+    readonly $container: Model;
+    readonly $type: 'OsView';
+    name: string;
+    os: langium.Reference<Os>;
+    title?: string;
+}
+
+export const OsView = {
+    $type: 'OsView',
+    name: 'name',
+    os: 'os',
+    title: 'title'
+} as const;
+
+export function isOsView(item: unknown): item is OsView {
+    return reflection.isInstance(item, OsView.$type);
 }
 
 export interface Port extends langium.AstNode {
@@ -506,6 +660,25 @@ export function isPrototype(item: unknown): item is Prototype {
     return reflection.isInstance(item, Prototype.$type);
 }
 
+export interface Queue extends langium.AstNode {
+    readonly $container: Os;
+    readonly $type: 'Queue';
+    depth?: number;
+    name: string;
+    type?: TypeRef;
+}
+
+export const Queue = {
+    $type: 'Queue',
+    depth: 'depth',
+    name: 'name',
+    type: 'type'
+} as const;
+
+export function isQueue(item: unknown): item is Queue {
+    return reflection.isInstance(item, Queue.$type);
+}
+
 export interface Runnable extends langium.AstNode {
     readonly $container: Bsw | Swc;
     readonly $type: 'Runnable';
@@ -523,6 +696,50 @@ export const Runnable = {
 
 export function isRunnable(item: unknown): item is Runnable {
     return reflection.isInstance(item, Runnable.$type);
+}
+
+export type RunnableOwner = Bsw | Swc;
+
+export const RunnableOwner = {
+    $type: 'RunnableOwner'
+} as const;
+
+export function isRunnableOwner(item: unknown): item is RunnableOwner {
+    return reflection.isInstance(item, RunnableOwner.$type);
+}
+
+export interface RunnableRef extends langium.AstNode {
+    readonly $container: Task;
+    readonly $type: 'RunnableRef';
+    component: langium.Reference<RunnableOwner>;
+    runnable: langium.Reference<Runnable>;
+}
+
+export const RunnableRef = {
+    $type: 'RunnableRef',
+    component: 'component',
+    runnable: 'runnable'
+} as const;
+
+export function isRunnableRef(item: unknown): item is RunnableRef {
+    return reflection.isInstance(item, RunnableRef.$type);
+}
+
+export interface Semaphore extends langium.AstNode {
+    readonly $container: Os;
+    readonly $type: 'Semaphore';
+    count?: number;
+    name: string;
+}
+
+export const Semaphore = {
+    $type: 'Semaphore',
+    count: 'count',
+    name: 'name'
+} as const;
+
+export function isSemaphore(item: unknown): item is Semaphore {
+    return reflection.isInstance(item, Semaphore.$type);
 }
 
 export interface Swc extends langium.AstNode {
@@ -550,6 +767,33 @@ export type SwcKind = 'application' | 'complexDriver' | 'ecuAbstraction' | 'para
 
 export function isSwcKind(item: unknown): item is SwcKind {
     return item === 'application' || item === 'sensorActuator' || item === 'service' || item === 'ecuAbstraction' || item === 'complexDriver' || item === 'parameter';
+}
+
+export interface Task extends langium.AstNode {
+    readonly $container: Os;
+    readonly $type: 'Task';
+    accesses: Array<OsAccess>;
+    core?: number;
+    name: string;
+    period?: string;
+    priority?: number;
+    runs: Array<RunnableRef>;
+    startup: boolean;
+}
+
+export const Task = {
+    $type: 'Task',
+    accesses: 'accesses',
+    core: 'core',
+    name: 'name',
+    period: 'period',
+    priority: 'priority',
+    runs: 'runs',
+    startup: 'startup'
+} as const;
+
+export function isTask(item: unknown): item is Task {
+    return reflection.isInstance(item, Task.$type);
 }
 
 export interface TimingTrigger extends langium.AstNode {
@@ -583,7 +827,7 @@ export function isTypeRef(item: unknown): item is TypeRef {
     return typeof item === 'string';
 }
 
-export type View = ComponentView | CompositionView | LayersView;
+export type View = ComponentView | CompositionView | LayersView | OsView;
 
 export const View = {
     $type: 'View'
@@ -605,21 +849,33 @@ export type ArdlAstType = {
     DataElement: DataElement
     DataTrigger: DataTrigger
     Element: Element
+    Event: Event
     InitTrigger: InitTrigger
     Interface: Interface
     InterfaceMember: InterfaceMember
+    Isr: Isr
     LayersView: LayersView
     ModeDeclaration: ModeDeclaration
     ModeGroup: ModeGroup
     ModeTrigger: ModeTrigger
     Model: Model
+    Mutex: Mutex
     Operation: Operation
     OperationTrigger: OperationTrigger
+    Os: Os
+    OsAccess: OsAccess
+    OsObject: OsObject
+    OsView: OsView
     Port: Port
     PortRef: PortRef
     Prototype: Prototype
+    Queue: Queue
     Runnable: Runnable
+    RunnableOwner: RunnableOwner
+    RunnableRef: RunnableRef
+    Semaphore: Semaphore
     Swc: Swc
+    Task: Task
     TimingTrigger: TimingTrigger
     Trigger: Trigger
     View: View
@@ -682,7 +938,7 @@ export class ArdlAstReflection extends langium.AbstractAstReflection {
                     optional: true
                 }
             },
-            superTypes: [Component.$type]
+            superTypes: [Component.$type, RunnableOwner.$type]
         },
         Component: {
             name: Component.$type,
@@ -788,6 +1044,15 @@ export class ArdlAstReflection extends langium.AbstractAstReflection {
             },
             superTypes: []
         },
+        Event: {
+            name: Event.$type,
+            properties: {
+                name: {
+                    name: Event.name
+                }
+            },
+            superTypes: [OsObject.$type]
+        },
         InitTrigger: {
             name: InitTrigger.$type,
             properties: {
@@ -814,6 +1079,32 @@ export class ArdlAstReflection extends langium.AbstractAstReflection {
         InterfaceMember: {
             name: InterfaceMember.$type,
             properties: {
+            },
+            superTypes: []
+        },
+        Isr: {
+            name: Isr.$type,
+            properties: {
+                accesses: {
+                    name: Isr.accesses,
+                    defaultValue: [],
+                    optional: true
+                },
+                cat: {
+                    name: Isr.cat,
+                    optional: true
+                },
+                core: {
+                    name: Isr.core,
+                    optional: true
+                },
+                name: {
+                    name: Isr.name
+                },
+                priority: {
+                    name: Isr.priority,
+                    optional: true
+                }
             },
             superTypes: []
         },
@@ -876,6 +1167,19 @@ export class ArdlAstReflection extends langium.AbstractAstReflection {
             },
             superTypes: []
         },
+        Mutex: {
+            name: Mutex.$type,
+            properties: {
+                name: {
+                    name: Mutex.name
+                },
+                protocol: {
+                    name: Mutex.protocol,
+                    optional: true
+                }
+            },
+            superTypes: [OsObject.$type]
+        },
         Operation: {
             name: Operation.$type,
             properties: {
@@ -903,6 +1207,71 @@ export class ArdlAstReflection extends langium.AbstractAstReflection {
                 }
             },
             superTypes: [Trigger.$type]
+        },
+        Os: {
+            name: Os.$type,
+            properties: {
+                isrs: {
+                    name: Os.isrs,
+                    defaultValue: [],
+                    optional: true
+                },
+                name: {
+                    name: Os.name
+                },
+                objects: {
+                    name: Os.objects,
+                    defaultValue: [],
+                    optional: true
+                },
+                profile: {
+                    name: Os.profile,
+                    optional: true
+                },
+                tasks: {
+                    name: Os.tasks,
+                    defaultValue: [],
+                    optional: true
+                }
+            },
+            superTypes: [Element.$type]
+        },
+        OsAccess: {
+            name: OsAccess.$type,
+            properties: {
+                kind: {
+                    name: OsAccess.kind
+                },
+                objects: {
+                    name: OsAccess.objects,
+                    defaultValue: [],
+                    referenceType: OsObject.$type
+                }
+            },
+            superTypes: []
+        },
+        OsObject: {
+            name: OsObject.$type,
+            properties: {
+            },
+            superTypes: []
+        },
+        OsView: {
+            name: OsView.$type,
+            properties: {
+                name: {
+                    name: OsView.name
+                },
+                os: {
+                    name: OsView.os,
+                    referenceType: Os.$type
+                },
+                title: {
+                    name: OsView.title,
+                    optional: true
+                }
+            },
+            superTypes: [View.$type]
         },
         Port: {
             name: Port.$type,
@@ -949,6 +1318,23 @@ export class ArdlAstReflection extends langium.AbstractAstReflection {
             },
             superTypes: []
         },
+        Queue: {
+            name: Queue.$type,
+            properties: {
+                depth: {
+                    name: Queue.depth,
+                    optional: true
+                },
+                name: {
+                    name: Queue.name
+                },
+                type: {
+                    name: Queue.type,
+                    optional: true
+                }
+            },
+            superTypes: [OsObject.$type]
+        },
         Runnable: {
             name: Runnable.$type,
             properties: {
@@ -967,6 +1353,39 @@ export class ArdlAstReflection extends langium.AbstractAstReflection {
                 }
             },
             superTypes: []
+        },
+        RunnableOwner: {
+            name: RunnableOwner.$type,
+            properties: {
+            },
+            superTypes: []
+        },
+        RunnableRef: {
+            name: RunnableRef.$type,
+            properties: {
+                component: {
+                    name: RunnableRef.component,
+                    referenceType: RunnableOwner.$type
+                },
+                runnable: {
+                    name: RunnableRef.runnable,
+                    referenceType: Runnable.$type
+                }
+            },
+            superTypes: []
+        },
+        Semaphore: {
+            name: Semaphore.$type,
+            properties: {
+                count: {
+                    name: Semaphore.count,
+                    optional: true
+                },
+                name: {
+                    name: Semaphore.name
+                }
+            },
+            superTypes: [OsObject.$type]
         },
         Swc: {
             name: Swc.$type,
@@ -988,7 +1407,43 @@ export class ArdlAstReflection extends langium.AbstractAstReflection {
                     optional: true
                 }
             },
-            superTypes: [Component.$type]
+            superTypes: [Component.$type, RunnableOwner.$type]
+        },
+        Task: {
+            name: Task.$type,
+            properties: {
+                accesses: {
+                    name: Task.accesses,
+                    defaultValue: [],
+                    optional: true
+                },
+                core: {
+                    name: Task.core,
+                    optional: true
+                },
+                name: {
+                    name: Task.name
+                },
+                period: {
+                    name: Task.period,
+                    optional: true
+                },
+                priority: {
+                    name: Task.priority,
+                    optional: true
+                },
+                runs: {
+                    name: Task.runs,
+                    defaultValue: [],
+                    optional: true
+                },
+                startup: {
+                    name: Task.startup,
+                    defaultValue: false,
+                    optional: true
+                }
+            },
+            superTypes: []
         },
         TimingTrigger: {
             name: TimingTrigger.$type,

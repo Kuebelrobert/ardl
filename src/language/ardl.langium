@@ -19,7 +19,7 @@ entry Model:
     (elements+=Element)*;
 
 Element:
-    Interface | Component | View;
+    Interface | Component | Os | View;
 
 // ---------------------------------------------------------------- interfaces
 
@@ -155,12 +155,74 @@ Connector:
 PortRef:
     (prototype=[Prototype:Name] '.')? port=[Port:Name];
 
+// ---------------------------------------------------------------- operating system
+
+// The OS of an ECU: tasks, ISRs and the objects they synchronize and
+// communicate through. The profile (`autosar`, `osek`, `threadx`, `freertos`,
+// `generic`) is a plain identifier; the validator says which objects and
+// protocols a profile supports. Names inside an `os` block are local to it.
+Os:
+    'os' name=ID ('profile' profile=ID)? '{' (tasks+=Task | isrs+=Isr | objects+=OsObject)* '}';
+
+// `task Task_10ms prio 10 every 10ms runs LightCtrl.R_Control locks NvmLock`.
+// Like a runnable, the clauses come in any order and may span several lines.
+Task:
+    'task' name=ID (
+        'prio' priority=INT
+        | 'core' core=INT
+        | 'every' period=DURATION
+        | 'on' startup?='startup'
+        | 'runs' runs+=RunnableRef (',' runs+=RunnableRef)*
+        | accesses+=OsAccess
+    )*;
+
+// `isr CanRxIsr cat 2 sets CanRx`. Category 1 ISRs must not use OS objects.
+Isr:
+    'isr' name=ID (
+        'prio' priority=INT
+        | 'core' core=INT
+        | 'cat' cat=INT
+        | accesses+=OsAccess
+    )*;
+
+// Runnable-to-task mapping: `LightCtrl.R_Control` or `NvM.NvM_MainFunction`.
+RunnableRef:
+    component=[RunnableOwner:ID] '.' runnable=[Runnable:Name];
+
+type RunnableOwner = Swc | Bsw;
+
+// How a task or ISR uses an OS object. `locks A, B` takes B while A is held,
+// which is the lock order the deadlock check works on.
+OsAccess:
+    kind=OsAccessKind objects+=[OsObject:ID] (',' objects+=[OsObject:ID])*;
+
+OsAccessKind returns string:
+    'locks' | 'takes' | 'gives' | 'sends' | 'receives' | 'waits' | 'sets';
+
+OsObject:
+    Mutex | Semaphore | Queue | Event;
+
+// `protocol inherit | ceiling | none`; without it the profile's default
+// (ceiling for autosar/osek, inherit otherwise).
+Mutex:
+    'mutex' name=ID ('protocol' protocol=ID)?;
+
+Semaphore:
+    'semaphore' name=ID ('count' count=INT)?;
+
+// Message queue (ThreadX/FreeRTOS) or IOC channel (AUTOSAR).
+Queue:
+    'queue' name=ID ('of' type=TypeRef)? ('depth' depth=INT)?;
+
+Event:
+    'event' name=ID;
+
 // ---------------------------------------------------------------- views
 
-// Views select what the preview and the CLI render. All three share the
+// Views select what the preview and the CLI render. All of them share the
 // `view <name>` prefix; the keyword after the name decides the kind.
 View:
-    CompositionView | ComponentView | LayersView;
+    CompositionView | ComponentView | LayersView | OsView;
 
 // Internal structure of a composition.
 CompositionView:
@@ -174,12 +236,17 @@ ComponentView:
 LayersView:
     'view' name=ID 'layers' ('{' modules+=[Bsw:ID] (',' modules+=[Bsw:ID])* '}')? ('title' title=STRING)?;
 
+// Tasks, ISRs and OS objects of one `os`, with the mapped runnables.
+OsView:
+    'view' name=ID 'os' os=[Os:ID] ('title' title=STRING)?;
+
 // ---------------------------------------------------------------- terminals
 
 // Names of ports, runnables and members. Besides plain identifiers they may
 // reuse soft keywords, so a data element can be called `data` or `mode`.
 Name returns string:
-    ID | 'data' | 'init' | 'call' | 'mode' | 'modes' | 'layer' | 'title' | 'in' | 'out' | 'inout';
+    ID | 'data' | 'init' | 'call' | 'mode' | 'modes' | 'layer' | 'title' | 'in' | 'out' | 'inout'
+    | 'core' | 'count' | 'depth' | 'event' | 'queue' | 'prio' | 'protocol' | 'startup' | 'cat' | 'of';
 
 hidden terminal WS: /\s+/;
 // Must come before INT: the lexer takes the first terminal that matches, and

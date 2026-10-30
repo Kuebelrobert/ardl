@@ -58,6 +58,13 @@ export const ArdlGrammar = (): Grammar => loadedArdlGrammar ?? (loadedArdlGramma
               "$ref": "#/rules@33"
             },
             "arguments": []
+          },
+          {
+            "$type": "RuleCall",
+            "rule": {
+              "$ref": "#/rules@44"
+            },
+            "arguments": []
           }
         ]
       },
@@ -94,7 +101,7 @@ export const ArdlGrammar = (): Grammar => loadedArdlGrammar ?? (loadedArdlGramma
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@40"
+                "$ref": "#/rules@52"
               },
               "arguments": []
             }
@@ -205,7 +212,7 @@ export const ArdlGrammar = (): Grammar => loadedArdlGrammar ?? (loadedArdlGramma
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@37"
+                "$ref": "#/rules@49"
               },
               "arguments": []
             }
@@ -245,7 +252,7 @@ export const ArdlGrammar = (): Grammar => loadedArdlGrammar ?? (loadedArdlGramma
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@37"
+                "$ref": "#/rules@49"
               },
               "arguments": []
             }
@@ -351,7 +358,7 @@ export const ArdlGrammar = (): Grammar => loadedArdlGrammar ?? (loadedArdlGramma
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@37"
+                "$ref": "#/rules@49"
               },
               "arguments": []
             }
@@ -463,7 +470,7 @@ export const ArdlGrammar = (): Grammar => loadedArdlGrammar ?? (loadedArdlGramma
         "terminal": {
           "$type": "RuleCall",
           "rule": {
-            "$ref": "#/rules@37"
+            "$ref": "#/rules@49"
           },
           "arguments": []
         }
@@ -482,7 +489,7 @@ export const ArdlGrammar = (): Grammar => loadedArdlGrammar ?? (loadedArdlGramma
           {
             "$type": "RuleCall",
             "rule": {
-              "$ref": "#/rules@37"
+              "$ref": "#/rules@49"
             },
             "arguments": []
           },
@@ -496,7 +503,7 @@ export const ArdlGrammar = (): Grammar => loadedArdlGrammar ?? (loadedArdlGramma
               {
                 "$type": "RuleCall",
                 "rule": {
-                  "$ref": "#/rules@41"
+                  "$ref": "#/rules@53"
                 },
                 "arguments": []
               },
@@ -575,7 +582,7 @@ export const ArdlGrammar = (): Grammar => loadedArdlGrammar ?? (loadedArdlGramma
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@40"
+                "$ref": "#/rules@52"
               },
               "arguments": []
             }
@@ -647,7 +654,7 @@ export const ArdlGrammar = (): Grammar => loadedArdlGrammar ?? (loadedArdlGramma
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@40"
+                "$ref": "#/rules@52"
               },
               "arguments": []
             }
@@ -687,7 +694,7 @@ export const ArdlGrammar = (): Grammar => loadedArdlGrammar ?? (loadedArdlGramma
                   "terminal": {
                     "$type": "RuleCall",
                     "rule": {
-                      "$ref": "#/rules@40"
+                      "$ref": "#/rules@52"
                     },
                     "arguments": []
                   },
@@ -714,7 +721,7 @@ export const ArdlGrammar = (): Grammar => loadedArdlGrammar ?? (loadedArdlGramma
                       "terminal": {
                         "$type": "RuleCall",
                         "rule": {
-                          "$ref": "#/rules@40"
+                          "$ref": "#/rules@52"
                         },
                         "arguments": []
                       },
@@ -846,7 +853,7 @@ export const ArdlGrammar = (): Grammar => loadedArdlGrammar ?? (loadedArdlGramma
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@37"
+                "$ref": "#/rules@49"
               },
               "arguments": []
             }
@@ -867,7 +874,7 @@ export const ArdlGrammar = (): Grammar => loadedArdlGrammar ?? (loadedArdlGramma
               "terminal": {
                 "$type": "RuleCall",
                 "rule": {
-                  "$ref": "#/rules@40"
+                  "$ref": "#/rules@52"
                 },
                 "arguments": []
               },
@@ -923,7 +930,7 @@ export const ArdlGrammar = (): Grammar => loadedArdlGrammar ?? (loadedArdlGramma
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@37"
+                "$ref": "#/rules@49"
               },
               "arguments": []
             }
@@ -1028,7 +1035,7 @@ export const ArdlGrammar = (): Grammar => loadedArdlGrammar ?? (loadedArdlGramma
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@39"
+                "$ref": "#/rules@51"
               },
               "arguments": []
             }
@@ -1092,7 +1099,7 @@ export const ArdlGrammar = (): Grammar => loadedArdlGrammar ?? (loadedArdlGramma
               "terminal": {
                 "$type": "RuleCall",
                 "rule": {
-                  "$ref": "#/rules@37"
+                  "$ref": "#/rules@49"
                 },
                 "arguments": []
               },
@@ -1132,7 +1139,7 @@ export const ArdlGrammar = (): Grammar => loadedArdlGrammar ?? (loadedArdlGramma
               "terminal": {
                 "$type": "RuleCall",
                 "rule": {
-                  "$ref": "#/rules@37"
+                  "$ref": "#/rules@49"
                 },
                 "arguments": []
               },
@@ -1172,7 +1179,7 @@ export const ArdlGrammar = (): Grammar => loadedArdlGrammar ?? (loadedArdlGramma
               "terminal": {
                 "$type": "RuleCall",
                 "rule": {
-                  "$ref": "#/rules@37"
+                  "$ref": "#/rules@49"
                 },
                 "arguments": []
               },
@@ -1216,7 +1223,7 @@ export const ArdlGrammar = (): Grammar => loadedArdlGrammar ?? (loadedArdlGramma
               "terminal": {
                 "$type": "RuleCall",
                 "rule": {
-                  "$ref": "#/rules@37"
+                  "$ref": "#/rules@49"
                 },
                 "arguments": []
               },
@@ -1243,7 +1250,7 @@ export const ArdlGrammar = (): Grammar => loadedArdlGrammar ?? (loadedArdlGramma
                   "terminal": {
                     "$type": "RuleCall",
                     "rule": {
-                      "$ref": "#/rules@37"
+                      "$ref": "#/rules@49"
                     },
                     "arguments": []
                   },
@@ -1306,7 +1313,7 @@ export const ArdlGrammar = (): Grammar => loadedArdlGrammar ?? (loadedArdlGramma
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@40"
+                "$ref": "#/rules@52"
               },
               "arguments": []
             }
@@ -1387,7 +1394,7 @@ export const ArdlGrammar = (): Grammar => loadedArdlGrammar ?? (loadedArdlGramma
                 "terminal": {
                   "$type": "RuleCall",
                   "rule": {
-                    "$ref": "#/rules@37"
+                    "$ref": "#/rules@49"
                   },
                   "arguments": []
                 }
@@ -1411,7 +1418,7 @@ export const ArdlGrammar = (): Grammar => loadedArdlGrammar ?? (loadedArdlGramma
               "terminal": {
                 "$type": "RuleCall",
                 "rule": {
-                  "$ref": "#/rules@40"
+                  "$ref": "#/rules@52"
                 },
                 "arguments": []
               },
@@ -1490,7 +1497,7 @@ export const ArdlGrammar = (): Grammar => loadedArdlGrammar ?? (loadedArdlGramma
                   "terminal": {
                     "$type": "RuleCall",
                     "rule": {
-                      "$ref": "#/rules@37"
+                      "$ref": "#/rules@49"
                     },
                     "arguments": []
                   },
@@ -1517,12 +1524,802 @@ export const ArdlGrammar = (): Grammar => loadedArdlGrammar ?? (loadedArdlGramma
               "terminal": {
                 "$type": "RuleCall",
                 "rule": {
-                  "$ref": "#/rules@37"
+                  "$ref": "#/rules@49"
                 },
                 "arguments": []
               },
               "deprecatedSyntax": false,
               "isMulti": false
+            }
+          }
+        ]
+      },
+      "entry": false,
+      "fragment": false,
+      "parameters": []
+    },
+    {
+      "$type": "ParserRule",
+      "name": "Os",
+      "definition": {
+        "$type": "Group",
+        "elements": [
+          {
+            "$type": "Keyword",
+            "value": "os"
+          },
+          {
+            "$type": "Assignment",
+            "feature": "name",
+            "operator": "=",
+            "terminal": {
+              "$type": "RuleCall",
+              "rule": {
+                "$ref": "#/rules@52"
+              },
+              "arguments": []
+            }
+          },
+          {
+            "$type": "Group",
+            "elements": [
+              {
+                "$type": "Keyword",
+                "value": "profile"
+              },
+              {
+                "$type": "Assignment",
+                "feature": "profile",
+                "operator": "=",
+                "terminal": {
+                  "$type": "RuleCall",
+                  "rule": {
+                    "$ref": "#/rules@52"
+                  },
+                  "arguments": []
+                }
+              }
+            ],
+            "cardinality": "?"
+          },
+          {
+            "$type": "Keyword",
+            "value": "{"
+          },
+          {
+            "$type": "Alternatives",
+            "elements": [
+              {
+                "$type": "Assignment",
+                "feature": "tasks",
+                "operator": "+=",
+                "terminal": {
+                  "$type": "RuleCall",
+                  "rule": {
+                    "$ref": "#/rules@34"
+                  },
+                  "arguments": []
+                }
+              },
+              {
+                "$type": "Assignment",
+                "feature": "isrs",
+                "operator": "+=",
+                "terminal": {
+                  "$type": "RuleCall",
+                  "rule": {
+                    "$ref": "#/rules@35"
+                  },
+                  "arguments": []
+                }
+              },
+              {
+                "$type": "Assignment",
+                "feature": "objects",
+                "operator": "+=",
+                "terminal": {
+                  "$type": "RuleCall",
+                  "rule": {
+                    "$ref": "#/rules@39"
+                  },
+                  "arguments": []
+                }
+              }
+            ],
+            "cardinality": "*"
+          },
+          {
+            "$type": "Keyword",
+            "value": "}"
+          }
+        ]
+      },
+      "entry": false,
+      "fragment": false,
+      "parameters": []
+    },
+    {
+      "$type": "ParserRule",
+      "name": "Task",
+      "definition": {
+        "$type": "Group",
+        "elements": [
+          {
+            "$type": "Keyword",
+            "value": "task"
+          },
+          {
+            "$type": "Assignment",
+            "feature": "name",
+            "operator": "=",
+            "terminal": {
+              "$type": "RuleCall",
+              "rule": {
+                "$ref": "#/rules@52"
+              },
+              "arguments": []
+            }
+          },
+          {
+            "$type": "Alternatives",
+            "elements": [
+              {
+                "$type": "Group",
+                "elements": [
+                  {
+                    "$type": "Keyword",
+                    "value": "prio"
+                  },
+                  {
+                    "$type": "Assignment",
+                    "feature": "priority",
+                    "operator": "=",
+                    "terminal": {
+                      "$type": "RuleCall",
+                      "rule": {
+                        "$ref": "#/rules@53"
+                      },
+                      "arguments": []
+                    }
+                  }
+                ]
+              },
+              {
+                "$type": "Group",
+                "elements": [
+                  {
+                    "$type": "Keyword",
+                    "value": "core"
+                  },
+                  {
+                    "$type": "Assignment",
+                    "feature": "core",
+                    "operator": "=",
+                    "terminal": {
+                      "$type": "RuleCall",
+                      "rule": {
+                        "$ref": "#/rules@53"
+                      },
+                      "arguments": []
+                    }
+                  }
+                ]
+              },
+              {
+                "$type": "Group",
+                "elements": [
+                  {
+                    "$type": "Keyword",
+                    "value": "every"
+                  },
+                  {
+                    "$type": "Assignment",
+                    "feature": "period",
+                    "operator": "=",
+                    "terminal": {
+                      "$type": "RuleCall",
+                      "rule": {
+                        "$ref": "#/rules@51"
+                      },
+                      "arguments": []
+                    }
+                  }
+                ]
+              },
+              {
+                "$type": "Group",
+                "elements": [
+                  {
+                    "$type": "Keyword",
+                    "value": "on"
+                  },
+                  {
+                    "$type": "Assignment",
+                    "feature": "startup",
+                    "operator": "?=",
+                    "terminal": {
+                      "$type": "Keyword",
+                      "value": "startup"
+                    }
+                  }
+                ]
+              },
+              {
+                "$type": "Group",
+                "elements": [
+                  {
+                    "$type": "Keyword",
+                    "value": "runs"
+                  },
+                  {
+                    "$type": "Assignment",
+                    "feature": "runs",
+                    "operator": "+=",
+                    "terminal": {
+                      "$type": "RuleCall",
+                      "rule": {
+                        "$ref": "#/rules@36"
+                      },
+                      "arguments": []
+                    }
+                  },
+                  {
+                    "$type": "Group",
+                    "elements": [
+                      {
+                        "$type": "Keyword",
+                        "value": ","
+                      },
+                      {
+                        "$type": "Assignment",
+                        "feature": "runs",
+                        "operator": "+=",
+                        "terminal": {
+                          "$type": "RuleCall",
+                          "rule": {
+                            "$ref": "#/rules@36"
+                          },
+                          "arguments": []
+                        }
+                      }
+                    ],
+                    "cardinality": "*"
+                  }
+                ]
+              },
+              {
+                "$type": "Assignment",
+                "feature": "accesses",
+                "operator": "+=",
+                "terminal": {
+                  "$type": "RuleCall",
+                  "rule": {
+                    "$ref": "#/rules@37"
+                  },
+                  "arguments": []
+                }
+              }
+            ],
+            "cardinality": "*"
+          }
+        ]
+      },
+      "entry": false,
+      "fragment": false,
+      "parameters": []
+    },
+    {
+      "$type": "ParserRule",
+      "name": "Isr",
+      "definition": {
+        "$type": "Group",
+        "elements": [
+          {
+            "$type": "Keyword",
+            "value": "isr"
+          },
+          {
+            "$type": "Assignment",
+            "feature": "name",
+            "operator": "=",
+            "terminal": {
+              "$type": "RuleCall",
+              "rule": {
+                "$ref": "#/rules@52"
+              },
+              "arguments": []
+            }
+          },
+          {
+            "$type": "Alternatives",
+            "elements": [
+              {
+                "$type": "Group",
+                "elements": [
+                  {
+                    "$type": "Keyword",
+                    "value": "prio"
+                  },
+                  {
+                    "$type": "Assignment",
+                    "feature": "priority",
+                    "operator": "=",
+                    "terminal": {
+                      "$type": "RuleCall",
+                      "rule": {
+                        "$ref": "#/rules@53"
+                      },
+                      "arguments": []
+                    }
+                  }
+                ]
+              },
+              {
+                "$type": "Group",
+                "elements": [
+                  {
+                    "$type": "Keyword",
+                    "value": "core"
+                  },
+                  {
+                    "$type": "Assignment",
+                    "feature": "core",
+                    "operator": "=",
+                    "terminal": {
+                      "$type": "RuleCall",
+                      "rule": {
+                        "$ref": "#/rules@53"
+                      },
+                      "arguments": []
+                    }
+                  }
+                ]
+              },
+              {
+                "$type": "Group",
+                "elements": [
+                  {
+                    "$type": "Keyword",
+                    "value": "cat"
+                  },
+                  {
+                    "$type": "Assignment",
+                    "feature": "cat",
+                    "operator": "=",
+                    "terminal": {
+                      "$type": "RuleCall",
+                      "rule": {
+                        "$ref": "#/rules@53"
+                      },
+                      "arguments": []
+                    }
+                  }
+                ]
+              },
+              {
+                "$type": "Assignment",
+                "feature": "accesses",
+                "operator": "+=",
+                "terminal": {
+                  "$type": "RuleCall",
+                  "rule": {
+                    "$ref": "#/rules@37"
+                  },
+                  "arguments": []
+                }
+              }
+            ],
+            "cardinality": "*"
+          }
+        ]
+      },
+      "entry": false,
+      "fragment": false,
+      "parameters": []
+    },
+    {
+      "$type": "ParserRule",
+      "name": "RunnableRef",
+      "definition": {
+        "$type": "Group",
+        "elements": [
+          {
+            "$type": "Assignment",
+            "feature": "component",
+            "operator": "=",
+            "terminal": {
+              "$type": "CrossReference",
+              "type": {
+                "$ref": "#/types@0"
+              },
+              "terminal": {
+                "$type": "RuleCall",
+                "rule": {
+                  "$ref": "#/rules@52"
+                },
+                "arguments": []
+              },
+              "deprecatedSyntax": false,
+              "isMulti": false
+            }
+          },
+          {
+            "$type": "Keyword",
+            "value": "."
+          },
+          {
+            "$type": "Assignment",
+            "feature": "runnable",
+            "operator": "=",
+            "terminal": {
+              "$type": "CrossReference",
+              "type": {
+                "$ref": "#/rules@20"
+              },
+              "terminal": {
+                "$type": "RuleCall",
+                "rule": {
+                  "$ref": "#/rules@49"
+                },
+                "arguments": []
+              },
+              "deprecatedSyntax": false,
+              "isMulti": false
+            }
+          }
+        ]
+      },
+      "entry": false,
+      "fragment": false,
+      "parameters": []
+    },
+    {
+      "$type": "ParserRule",
+      "name": "OsAccess",
+      "definition": {
+        "$type": "Group",
+        "elements": [
+          {
+            "$type": "Assignment",
+            "feature": "kind",
+            "operator": "=",
+            "terminal": {
+              "$type": "RuleCall",
+              "rule": {
+                "$ref": "#/rules@38"
+              },
+              "arguments": []
+            }
+          },
+          {
+            "$type": "Assignment",
+            "feature": "objects",
+            "operator": "+=",
+            "terminal": {
+              "$type": "CrossReference",
+              "type": {
+                "$ref": "#/rules@39"
+              },
+              "terminal": {
+                "$type": "RuleCall",
+                "rule": {
+                  "$ref": "#/rules@52"
+                },
+                "arguments": []
+              },
+              "deprecatedSyntax": false,
+              "isMulti": false
+            }
+          },
+          {
+            "$type": "Group",
+            "elements": [
+              {
+                "$type": "Keyword",
+                "value": ","
+              },
+              {
+                "$type": "Assignment",
+                "feature": "objects",
+                "operator": "+=",
+                "terminal": {
+                  "$type": "CrossReference",
+                  "type": {
+                    "$ref": "#/rules@39"
+                  },
+                  "terminal": {
+                    "$type": "RuleCall",
+                    "rule": {
+                      "$ref": "#/rules@52"
+                    },
+                    "arguments": []
+                  },
+                  "deprecatedSyntax": false,
+                  "isMulti": false
+                }
+              }
+            ],
+            "cardinality": "*"
+          }
+        ]
+      },
+      "entry": false,
+      "fragment": false,
+      "parameters": []
+    },
+    {
+      "$type": "ParserRule",
+      "name": "OsAccessKind",
+      "dataType": "string",
+      "definition": {
+        "$type": "Alternatives",
+        "elements": [
+          {
+            "$type": "Keyword",
+            "value": "locks"
+          },
+          {
+            "$type": "Keyword",
+            "value": "takes"
+          },
+          {
+            "$type": "Keyword",
+            "value": "gives"
+          },
+          {
+            "$type": "Keyword",
+            "value": "sends"
+          },
+          {
+            "$type": "Keyword",
+            "value": "receives"
+          },
+          {
+            "$type": "Keyword",
+            "value": "waits"
+          },
+          {
+            "$type": "Keyword",
+            "value": "sets"
+          }
+        ]
+      },
+      "entry": false,
+      "fragment": false,
+      "parameters": []
+    },
+    {
+      "$type": "ParserRule",
+      "name": "OsObject",
+      "definition": {
+        "$type": "Alternatives",
+        "elements": [
+          {
+            "$type": "RuleCall",
+            "rule": {
+              "$ref": "#/rules@40"
+            },
+            "arguments": []
+          },
+          {
+            "$type": "RuleCall",
+            "rule": {
+              "$ref": "#/rules@41"
+            },
+            "arguments": []
+          },
+          {
+            "$type": "RuleCall",
+            "rule": {
+              "$ref": "#/rules@42"
+            },
+            "arguments": []
+          },
+          {
+            "$type": "RuleCall",
+            "rule": {
+              "$ref": "#/rules@43"
+            },
+            "arguments": []
+          }
+        ]
+      },
+      "entry": false,
+      "fragment": false,
+      "parameters": []
+    },
+    {
+      "$type": "ParserRule",
+      "name": "Mutex",
+      "definition": {
+        "$type": "Group",
+        "elements": [
+          {
+            "$type": "Keyword",
+            "value": "mutex"
+          },
+          {
+            "$type": "Assignment",
+            "feature": "name",
+            "operator": "=",
+            "terminal": {
+              "$type": "RuleCall",
+              "rule": {
+                "$ref": "#/rules@52"
+              },
+              "arguments": []
+            }
+          },
+          {
+            "$type": "Group",
+            "elements": [
+              {
+                "$type": "Keyword",
+                "value": "protocol"
+              },
+              {
+                "$type": "Assignment",
+                "feature": "protocol",
+                "operator": "=",
+                "terminal": {
+                  "$type": "RuleCall",
+                  "rule": {
+                    "$ref": "#/rules@52"
+                  },
+                  "arguments": []
+                }
+              }
+            ],
+            "cardinality": "?"
+          }
+        ]
+      },
+      "entry": false,
+      "fragment": false,
+      "parameters": []
+    },
+    {
+      "$type": "ParserRule",
+      "name": "Semaphore",
+      "definition": {
+        "$type": "Group",
+        "elements": [
+          {
+            "$type": "Keyword",
+            "value": "semaphore"
+          },
+          {
+            "$type": "Assignment",
+            "feature": "name",
+            "operator": "=",
+            "terminal": {
+              "$type": "RuleCall",
+              "rule": {
+                "$ref": "#/rules@52"
+              },
+              "arguments": []
+            }
+          },
+          {
+            "$type": "Group",
+            "elements": [
+              {
+                "$type": "Keyword",
+                "value": "count"
+              },
+              {
+                "$type": "Assignment",
+                "feature": "count",
+                "operator": "=",
+                "terminal": {
+                  "$type": "RuleCall",
+                  "rule": {
+                    "$ref": "#/rules@53"
+                  },
+                  "arguments": []
+                }
+              }
+            ],
+            "cardinality": "?"
+          }
+        ]
+      },
+      "entry": false,
+      "fragment": false,
+      "parameters": []
+    },
+    {
+      "$type": "ParserRule",
+      "name": "Queue",
+      "definition": {
+        "$type": "Group",
+        "elements": [
+          {
+            "$type": "Keyword",
+            "value": "queue"
+          },
+          {
+            "$type": "Assignment",
+            "feature": "name",
+            "operator": "=",
+            "terminal": {
+              "$type": "RuleCall",
+              "rule": {
+                "$ref": "#/rules@52"
+              },
+              "arguments": []
+            }
+          },
+          {
+            "$type": "Group",
+            "elements": [
+              {
+                "$type": "Keyword",
+                "value": "of"
+              },
+              {
+                "$type": "Assignment",
+                "feature": "type",
+                "operator": "=",
+                "terminal": {
+                  "$type": "RuleCall",
+                  "rule": {
+                    "$ref": "#/rules@11"
+                  },
+                  "arguments": []
+                }
+              }
+            ],
+            "cardinality": "?"
+          },
+          {
+            "$type": "Group",
+            "elements": [
+              {
+                "$type": "Keyword",
+                "value": "depth"
+              },
+              {
+                "$type": "Assignment",
+                "feature": "depth",
+                "operator": "=",
+                "terminal": {
+                  "$type": "RuleCall",
+                  "rule": {
+                    "$ref": "#/rules@53"
+                  },
+                  "arguments": []
+                }
+              }
+            ],
+            "cardinality": "?"
+          }
+        ]
+      },
+      "entry": false,
+      "fragment": false,
+      "parameters": []
+    },
+    {
+      "$type": "ParserRule",
+      "name": "Event",
+      "definition": {
+        "$type": "Group",
+        "elements": [
+          {
+            "$type": "Keyword",
+            "value": "event"
+          },
+          {
+            "$type": "Assignment",
+            "feature": "name",
+            "operator": "=",
+            "terminal": {
+              "$type": "RuleCall",
+              "rule": {
+                "$ref": "#/rules@52"
+              },
+              "arguments": []
             }
           }
         ]
@@ -1540,21 +2337,28 @@ export const ArdlGrammar = (): Grammar => loadedArdlGrammar ?? (loadedArdlGramma
           {
             "$type": "RuleCall",
             "rule": {
-              "$ref": "#/rules@34"
+              "$ref": "#/rules@45"
             },
             "arguments": []
           },
           {
             "$type": "RuleCall",
             "rule": {
-              "$ref": "#/rules@35"
+              "$ref": "#/rules@46"
             },
             "arguments": []
           },
           {
             "$type": "RuleCall",
             "rule": {
-              "$ref": "#/rules@36"
+              "$ref": "#/rules@47"
+            },
+            "arguments": []
+          },
+          {
+            "$type": "RuleCall",
+            "rule": {
+              "$ref": "#/rules@48"
             },
             "arguments": []
           }
@@ -1581,7 +2385,7 @@ export const ArdlGrammar = (): Grammar => loadedArdlGrammar ?? (loadedArdlGramma
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@40"
+                "$ref": "#/rules@52"
               },
               "arguments": []
             }
@@ -1602,7 +2406,7 @@ export const ArdlGrammar = (): Grammar => loadedArdlGrammar ?? (loadedArdlGramma
               "terminal": {
                 "$type": "RuleCall",
                 "rule": {
-                  "$ref": "#/rules@40"
+                  "$ref": "#/rules@52"
                 },
                 "arguments": []
               },
@@ -1624,7 +2428,7 @@ export const ArdlGrammar = (): Grammar => loadedArdlGrammar ?? (loadedArdlGramma
                 "terminal": {
                   "$type": "RuleCall",
                   "rule": {
-                    "$ref": "#/rules@42"
+                    "$ref": "#/rules@54"
                   },
                   "arguments": []
                 }
@@ -1655,7 +2459,7 @@ export const ArdlGrammar = (): Grammar => loadedArdlGrammar ?? (loadedArdlGramma
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@40"
+                "$ref": "#/rules@52"
               },
               "arguments": []
             }
@@ -1676,7 +2480,7 @@ export const ArdlGrammar = (): Grammar => loadedArdlGrammar ?? (loadedArdlGramma
               "terminal": {
                 "$type": "RuleCall",
                 "rule": {
-                  "$ref": "#/rules@40"
+                  "$ref": "#/rules@52"
                 },
                 "arguments": []
               },
@@ -1698,7 +2502,7 @@ export const ArdlGrammar = (): Grammar => loadedArdlGrammar ?? (loadedArdlGramma
                 "terminal": {
                   "$type": "RuleCall",
                   "rule": {
-                    "$ref": "#/rules@42"
+                    "$ref": "#/rules@54"
                   },
                   "arguments": []
                 }
@@ -1729,7 +2533,7 @@ export const ArdlGrammar = (): Grammar => loadedArdlGrammar ?? (loadedArdlGramma
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@40"
+                "$ref": "#/rules@52"
               },
               "arguments": []
             }
@@ -1757,7 +2561,7 @@ export const ArdlGrammar = (): Grammar => loadedArdlGrammar ?? (loadedArdlGramma
                   "terminal": {
                     "$type": "RuleCall",
                     "rule": {
-                      "$ref": "#/rules@40"
+                      "$ref": "#/rules@52"
                     },
                     "arguments": []
                   },
@@ -1784,7 +2588,7 @@ export const ArdlGrammar = (): Grammar => loadedArdlGrammar ?? (loadedArdlGramma
                       "terminal": {
                         "$type": "RuleCall",
                         "rule": {
-                          "$ref": "#/rules@40"
+                          "$ref": "#/rules@52"
                         },
                         "arguments": []
                       },
@@ -1816,7 +2620,81 @@ export const ArdlGrammar = (): Grammar => loadedArdlGrammar ?? (loadedArdlGramma
                 "terminal": {
                   "$type": "RuleCall",
                   "rule": {
-                    "$ref": "#/rules@42"
+                    "$ref": "#/rules@54"
+                  },
+                  "arguments": []
+                }
+              }
+            ],
+            "cardinality": "?"
+          }
+        ]
+      },
+      "entry": false,
+      "fragment": false,
+      "parameters": []
+    },
+    {
+      "$type": "ParserRule",
+      "name": "OsView",
+      "definition": {
+        "$type": "Group",
+        "elements": [
+          {
+            "$type": "Keyword",
+            "value": "view"
+          },
+          {
+            "$type": "Assignment",
+            "feature": "name",
+            "operator": "=",
+            "terminal": {
+              "$type": "RuleCall",
+              "rule": {
+                "$ref": "#/rules@52"
+              },
+              "arguments": []
+            }
+          },
+          {
+            "$type": "Keyword",
+            "value": "os"
+          },
+          {
+            "$type": "Assignment",
+            "feature": "os",
+            "operator": "=",
+            "terminal": {
+              "$type": "CrossReference",
+              "type": {
+                "$ref": "#/rules@33"
+              },
+              "terminal": {
+                "$type": "RuleCall",
+                "rule": {
+                  "$ref": "#/rules@52"
+                },
+                "arguments": []
+              },
+              "deprecatedSyntax": false,
+              "isMulti": false
+            }
+          },
+          {
+            "$type": "Group",
+            "elements": [
+              {
+                "$type": "Keyword",
+                "value": "title"
+              },
+              {
+                "$type": "Assignment",
+                "feature": "title",
+                "operator": "=",
+                "terminal": {
+                  "$type": "RuleCall",
+                  "rule": {
+                    "$ref": "#/rules@54"
                   },
                   "arguments": []
                 }
@@ -1840,7 +2718,7 @@ export const ArdlGrammar = (): Grammar => loadedArdlGrammar ?? (loadedArdlGramma
           {
             "$type": "RuleCall",
             "rule": {
-              "$ref": "#/rules@40"
+              "$ref": "#/rules@52"
             },
             "arguments": []
           },
@@ -1883,6 +2761,46 @@ export const ArdlGrammar = (): Grammar => loadedArdlGrammar ?? (loadedArdlGramma
           {
             "$type": "Keyword",
             "value": "inout"
+          },
+          {
+            "$type": "Keyword",
+            "value": "core"
+          },
+          {
+            "$type": "Keyword",
+            "value": "count"
+          },
+          {
+            "$type": "Keyword",
+            "value": "depth"
+          },
+          {
+            "$type": "Keyword",
+            "value": "event"
+          },
+          {
+            "$type": "Keyword",
+            "value": "queue"
+          },
+          {
+            "$type": "Keyword",
+            "value": "prio"
+          },
+          {
+            "$type": "Keyword",
+            "value": "protocol"
+          },
+          {
+            "$type": "Keyword",
+            "value": "startup"
+          },
+          {
+            "$type": "Keyword",
+            "value": "cat"
+          },
+          {
+            "$type": "Keyword",
+            "value": "of"
           }
         ]
       },
@@ -1972,7 +2890,29 @@ export const ArdlGrammar = (): Grammar => loadedArdlGrammar ?? (loadedArdlGramma
       "fragment": false
     }
   ],
+  "types": [
+    {
+      "$type": "Type",
+      "name": "RunnableOwner",
+      "type": {
+        "$type": "UnionType",
+        "types": [
+          {
+            "$type": "SimpleType",
+            "typeRef": {
+              "$ref": "#/rules@13"
+            }
+          },
+          {
+            "$type": "SimpleType",
+            "typeRef": {
+              "$ref": "#/rules@15"
+            }
+          }
+        ]
+      }
+    }
+  ],
   "imports": [],
-  "interfaces": [],
-  "types": []
+  "interfaces": []
 }`));
