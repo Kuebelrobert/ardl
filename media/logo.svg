@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+  <!-- Marketplace icon source; media/logo.png is rendered from this file (see README, Development). -->
+  <rect width="256" height="256" rx="44" fill="#1f4f8f"/>
+  <!-- Two components connected by a sender-receiver connector. -->
+  <rect x="28" y="70" width="78" height="116" rx="10" fill="#e7f0fd"/>
+  <rect x="150" y="70" width="78" height="116" rx="10" fill="#e7f0fd"/>
+  <path d="M106 128 H150" stroke="#f2a33a" stroke-width="10"/>
+  <rect x="94" y="116" width="24" height="24" fill="#ffffff" stroke="#1f2328" stroke-width="3"/>
+  <path d="M100 121 L113 128 L100 135 Z" fill="#2f6fd0"/>
+  <rect x="138" y="116" width="24" height="24" fill="#ffffff" stroke="#1f2328" stroke-width="3"/>
+  <path d="M144 121 L157 128 L144 135 Z" fill="#2f6fd0"/>
+  <!-- Runnables. -->
+  <rect x="44" y="92" width="38" height="18" rx="9" fill="none" stroke="#3b6fb6" stroke-width="4"/>
+  <rect x="44" y="146" width="38" height="18" rx="9" fill="none" stroke="#3b6fb6" stroke-width="4"/>
+  <rect x="174" y="119" width="38" height="18" rx="9" fill="none" stroke="#3b6fb6" stroke-width="4"/>
+</svg>

@@ -5,6 +5,31 @@
   "version": "0.2.0",
   "publisher": "kuebelrobert",
   "license": "MIT",
+  "icon": "media/logo.png",
+  "galleryBanner": {
+    "color": "#1f4f8f",
+    "theme": "dark"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Kuebelrobert/ardl.git"
+  },
+  "homepage": "https://github.com/Kuebelrobert/ardl#readme",
+  "bugs": {
+    "url": "https://github.com/Kuebelrobert/ardl/issues"
+  },
+  "keywords": [
+    "autosar",
+    "dsl",
+    "architecture",
+    "diagram",
+    "swc",
+    "bsw",
+    "rte",
+    "os",
+    "automotive",
+    "design as code"
+  ],
   "type": "module",
   "engines": {
     "vscode": "^1.91.0",
@@ -76,7 +101,8 @@
     "watch": "node esbuild.mjs --watch",
     "test": "vitest run",
     "check:examples": "node bin/ardl.cjs check examples",
-    "package": "vsce package --no-dependencies --allow-missing-repository"
+    "package": "vsce package --no-dependencies",
+    "test:e2e": "node test/e2e/run.mjs"
   },
   "dependencies": {
     "elkjs": "^0.12.1",
@@ -87,6 +113,7 @@
   "devDependencies": {
     "@types/node": "^20.0.0",
     "@types/vscode": "~1.91.0",
+    "@vscode/test-electron": "^2.5.2",
     "@vscode/vsce": "^3.0.0",
     "esbuild": "^0.25.0",
     "langium-cli": "~4.4.0",

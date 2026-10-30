@@ -110,9 +110,20 @@ npm install
 npm run build            # Langium generator, type check, esbuild bundles in out/
 npm test                 # vitest: parser, validation, rendering
 npm run check:examples   # the CLI on examples/
+npm run test:e2e         # the extension in a real VS Code (after build)
 npm run package          # ardl-<version>.vsix
 code --install-extension ardl-0.2.0.vsix --force
 ```
+
+`test:e2e` downloads VS Code into `.vscode-test/` on the first run, opens a copy of `examples/` and checks activation, diagnostics, go to definition, completion, the preview and SVG export. `ARDL_VSCODE_VERSION=1.91.0 npm run test:e2e` runs it against the minimum version in `engines`.
+
+### Publishing
+
+1. Bump `version` in `package.json` and add an entry to `CHANGELOG.md`.
+2. `npm run build && npm test && npm run test:e2e && npm run package`.
+3. `npx vsce publish --packagePath ardl-<version>.vsix` (needs the `kuebelrobert` publisher and an Azure DevOps token with Marketplace › Manage scope); for Open VSX `npx ovsx publish ardl-<version>.vsix -p <token>`.
+
+The Marketplace icon `media/logo.png` is rendered from `media/logo.svg` (256 × 256), e.g. with headless Chrome: `chrome --headless --screenshot=media/logo.png --window-size=256,256 --default-background-color=00000000 media/logo.svg`.
 
 To debug, open this folder in VS Code and start **Run Extension** (`.vscode/launch.json`). It builds, then opens a second window with the extension loaded and `examples/` open. **Attach to Language Server** connects the debugger to the server process.
 
@@ -128,6 +139,8 @@ The generated parser and AST in `src/language/generated/` are committed, so test
 | `src/diagram/` | Model → ELK graph → layout → SVG, one file per view |
 | `src/extension/` | VS Code client and preview webview |
 | `src/cli/main.ts` | `ardl check` / `ardl render` |
+| `test/validation.test.ts` | Unit tests (vitest) |
+| `test/e2e/` | End-to-end smoke test in VS Code |
 | `media/` | Webview script and styles |
 | `test/preview-harness.html` | The webview outside VS Code, for checking layout and theming in a browser |
 

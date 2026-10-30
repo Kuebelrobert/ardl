@@ -3,3 +3,4 @@ out/
 out-tsc/
 *.vsix
 .DS_Store
+.vscode-test/

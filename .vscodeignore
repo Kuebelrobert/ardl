@@ -9,3 +9,4 @@
 !out/language/main.cjs
 !out/cli/main.cjs
 !bin/**
+!CHANGELOG.md
