@@ -24,8 +24,10 @@
 import { AstUtils, type AstNode, type IndexManager, type LangiumDocuments, type ValidationAcceptor, type ValidationChecks } from 'langium';
 import {
     isComposition,
+    isCompletionTrigger,
     isDataElement,
     isDataTrigger,
+    isErrorTrigger,
     isModeGroup,
     isModeTrigger,
     isMutex,
@@ -79,6 +81,7 @@ export function registerValidationChecks(services: ArdlServices): void {
     const checks: ValidationChecks<ArdlAstType> = {
         Model: validator.checkUniqueElementNames,
         Interface: validator.checkInterfaceMembers,
+        Port: validator.checkPort,
         Swc: validator.checkComponentMembers,
         Bsw: [validator.checkComponentMembers, validator.checkBswDependencies],
         Composition: [validator.checkComponentMembers, validator.checkComposition],
@@ -160,8 +163,19 @@ export class ArdlValidator {
                 accept('error', `A '${iface.kind}' interface contains ${expected} only.`, { node: member });
             }
         }
+        if (iface.queued && iface.kind !== 'sr') {
+            accept('error', `Only sender-receiver interfaces can be 'queued'.`, { node: iface, property: 'queued' });
+        }
         // Mode declarations share the member namespace, so `modes A, A` is a duplicate too.
         reportDuplicates(iface.members.flatMap<AstNode & { name?: string }>(m => isModeGroup(m) ? m.modes : [m]), 'Member', accept);
+    }
+
+    /** E2E protection exists for sender-receiver data and client-server calls (transformer chain). */
+    checkPort(port: Port, accept: ValidationAcceptor): void {
+        const kind = port.interface.ref?.kind;
+        if (port.e2e && kind && kind !== 'sr' && kind !== 'cs') {
+            accept('error', `E2E protection needs a sender-receiver or client-server port; '${port.name}' is a ${describe(port)}.`, { node: port, property: 'e2e' });
+        }
     }
 
     /** Port, runnable and exclusive area names are unique within their component; every exclusive area is entered. */
@@ -212,8 +226,16 @@ export class ArdlValidator {
      * | `on data P`     | required sr/nv/param | DataReceivedEvent           |
      * | `on call P`     | provided cs          | OperationInvokedEvent       |
      * | `on mode P`     | required mode        | SwcModeSwitchEvent          |
-     * | `reads P`       | required sr/nv/param | Rte_Read / Rte_IRead / Rte_Prm |
-     * | `writes P`      | provided sr/nv       | Rte_Write / Rte_IWrite      |
+     * | `on data error P` | required sr/nv     | DataReceiveErrorEvent       |
+     * | `on mode error P` | provided mode      | SwcModeManagerErrorEvent    |
+     * | `on transformer error P` | e2e port or provided cs | TransformerErrorEvent |
+     * | `on sent P`     | provided sr/nv       | DataSendCompletedEvent      |
+     * | `on written P`  | provided sr/nv, written implicitly | DataWriteCompletedEvent |
+     * | `on result P`   | required cs          | AsynchronousServerCallReturnsEvent |
+     * | `on switched P` | provided mode        | ModeSwitchedAckEvent        |
+     * | `reads P`       | required sr/nv/param | Rte_Read / Rte_Receive / Rte_Prm |
+     * | `writes P`      | provided sr/nv       | Rte_Write / Rte_Send        |
+     * | `implicit reads/writes P` | unqueued sr/nv | Rte_IRead / Rte_IWrite |
      * | `calls P`       | required cs          | Rte_Call                    |
      * | `switches P`    | provided mode        | Rte_Switch                  |
      */
@@ -238,9 +260,29 @@ export class ArdlValidator {
                 accept('error', `'on call' needs a provided client-server port; '${port.name}' is a ${describe(port)}.`, { node: trigger, property: 'port' });
             } else if (isModeTrigger(trigger) && !(isRequired(port) && kind === 'mode')) {
                 accept('error', `'on mode' needs a required mode-switch port; '${port.name}' is a ${describe(port)}.`, { node: trigger, property: 'port' });
+            } else if (isErrorTrigger(trigger) || isCompletionTrigger(trigger)) {
+                const event = isErrorTrigger(trigger) ? `${trigger.source} error` : trigger.event;
+                const data = kind === 'sr' || kind === 'nv';
+                const [ok, expected] = {
+                    'data error': [isRequired(port) && data, 'a required sr/nv port'],
+                    'mode error': [isProvided(port) && kind === 'mode', 'a provided mode port'],
+                    'transformer error': [port.e2e || (isProvided(port) && kind === 'cs'), "an 'e2e' port or a provided cs port"],
+                    sent: [isProvided(port) && data, 'a provided sr/nv port'],
+                    written: [isProvided(port) && data, 'a provided sr/nv port'],
+                    result: [isRequired(port) && kind === 'cs', 'a required cs port'],
+                    switched: [isProvided(port) && kind === 'mode', 'a provided mode port']
+                }[event] as [boolean, string];
+                if (!ok) {
+                    accept('error', `'on ${event}' needs ${expected}; '${port.name}' is a ${describe(port)}.`, { node: trigger, property: 'port' });
+                } else if (event === 'written' && !isImplicitlyWritten(runnable.$container, port)) {
+                    accept('warning', `'on written' follows an implicit write, but no runnable of '${runnable.$container.name}' has 'implicit writes ${port.name}'.`, { node: trigger, property: 'port' });
+                }
             }
         }
         for (const access of runnable.accesses) {
+            if (access.implicit && access.kind !== 'reads' && access.kind !== 'writes') {
+                accept('error', `Only reads and writes can be 'implicit'.`, { node: access, property: 'implicit' });
+            }
             access.ports.forEach((ref, index) => {
                 const port = ref.ref;
                 const kind = port?.interface.ref?.kind;
@@ -251,7 +293,9 @@ export class ArdlValidator {
                     : access.kind === 'writes' ? isProvided(port) && (kind === 'sr' || kind === 'nv')
                     : access.kind === 'calls' ? isRequired(port) && kind === 'cs'
                     : isProvided(port) && kind === 'mode';
-                if (!ok) {
+                if (ok && access.implicit && (kind === 'param' || port.interface.ref?.queued)) {
+                    accept('error', `'implicit ${access.kind}' needs unqueued sr/nv data; '${port.name}' is ${kind === 'param' ? 'a parameter port (Rte_Prm)' : 'queued'}.`, { node: access, property: 'ports', index });
+                } else if (!ok) {
                     const expected = {
                         reads: 'a required sr/nv/param port',
                         writes: 'a provided sr/nv port',
@@ -593,6 +637,11 @@ function isMultiple(a: string, b: string): boolean {
     const us = (d: string) => parseFloat(d) * (d.endsWith('us') ? 1 : d.endsWith('ms') ? 1000 : 1_000_000);
     const ratio = us(a) / us(b);
     return Math.abs(ratio - Math.round(ratio)) < 1e-9 && ratio >= 1;
+}
+
+/** True if some runnable of `owner` writes `port` with `implicit writes`. */
+function isImplicitlyWritten(owner: { runnables: Runnable[] }, port: Port): boolean {
+    return owner.runnables.some(r => r.accesses.some(a => a.implicit && a.kind === 'writes' && a.ports.some(p => p.ref === port)));
 }
 
 /** `proto.Port` for prototype ports, `Port` for ports of the composition itself; uses the source text so it works for unresolved references too. */

@@ -18,7 +18,7 @@
  * - `x:<runnable>:<area>` a runnable entering an exclusive area.
  */
 import type { ElkExtendedEdge, ElkNode } from 'elkjs/lib/elk-api.js';
-import { isDataTrigger, isInitTrigger, isModeTrigger, isOperationTrigger, isTimingTrigger, type Bsw, type Port, type Runnable, type Swc } from '../language/generated/ast.js';
+import { isCompletionTrigger, isDataTrigger, isErrorTrigger, isInitTrigger, isModeTrigger, isOperationTrigger, isTimingTrigger, type Bsw, type Port, type Runnable, type Swc } from '../language/generated/ast.js';
 import { BASE_OPTIONS, layout } from './layout.js';
 import { elkPort, labelWidths, renderPort } from './ports.js';
 import { edgeSvg, esc, legend, r, svgDocument, text, textWidth } from './svg.js';
@@ -29,9 +29,10 @@ const HEADER = 46;
 /**
  * How a runnable uses a port, derived from its triggers and accesses:
  * `reads`/`writes`/`calls`/`switches` from the accesses of the same name,
- * `serves` from `on call`, `mode` from `on mode` (and `on data` counts as `reads`).
+ * `serves` from `on call`, `mode` from `on mode` (and `on data` counts as `reads`),
+ * `event` from the error and completion events, which notify the runnable.
  */
-type Use = 'reads' | 'writes' | 'calls' | 'serves' | 'mode' | 'switches';
+type Use = 'reads' | 'writes' | 'calls' | 'serves' | 'mode' | 'switches' | 'event';
 
 /** One edge of the view: a runnable using a port. */
 interface UseEdge {
@@ -149,7 +150,7 @@ export async function renderComponent(component: Swc | Bsw, title: string): Prom
         // The arrow points where the data or the call goes. Reads, mode switches and
         // served calls arrive at the runnable; writes, calls and switches leave it.
         // Combined with the geometric direction of the edge, that decides the end.
-        const towardsRunnable = u.use === 'reads' || u.use === 'mode' || u.use === 'serves';
+        const towardsRunnable = u.use === 'reads' || u.use === 'mode' || u.use === 'serves' || u.use === 'event';
         const fromPort = u.port.direction === 'rport';
         const arrowAtEnd = towardsRunnable === fromPort;
         parts.push(edgeSvg(edge, `k-${kind}`, arrowAtEnd ? 'end' : 'start', `${u.runnable.name} ${u.use} ${u.port.name}`, laid.ports));
@@ -185,6 +186,7 @@ function collectUses(component: Swc | Bsw): UseEdge[] {
             if (isDataTrigger(t)) add(run, t.port.ref, 'reads');
             else if (isOperationTrigger(t)) add(run, t.port.ref, 'serves');
             else if (isModeTrigger(t)) add(run, t.port.ref, 'mode');
+            else if (isErrorTrigger(t) || isCompletionTrigger(t)) add(run, t.port.ref, 'event');
         }
         for (const access of run.accesses) {
             for (const ref of access.ports) {
@@ -206,7 +208,10 @@ function triggerText(run: Runnable): string {
         if (isDataTrigger(t)) return 'on data';
         if (isOperationTrigger(t)) return 'on call';
         if (isModeTrigger(t)) return 'on mode';
+        if (isErrorTrigger(t)) return `on ${t.source} error`;
+        if (isCompletionTrigger(t)) return `on ${t.event}`;
         return '';
     });
+    if (run.accesses.some(a => a.implicit)) parts.push('implicit');
     return parts.length ? parts.join(', ') : 'no trigger';
 }

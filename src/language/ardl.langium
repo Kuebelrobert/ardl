@@ -29,8 +29,10 @@ Element:
 //   mode  mode switch:     one mode group
 //   nv    NV data:         data elements
 //   param parameter:       data elements (calibration)
+// `queued` makes the data elements of an sr interface events (Rte_Send /
+// Rte_Receive) instead of last-is-best data.
 Interface:
-    'interface' kind=InterfaceKind name=ID '{' (members+=InterfaceMember)* '}';
+    'interface' kind=InterfaceKind name=ID (queued?='queued')? '{' (members+=InterfaceMember)* '}';
 
 InterfaceKind returns string:
     'sr' | 'cs' | 'mode' | 'nv' | 'param';
@@ -98,8 +100,9 @@ ExclusiveArea:
     'exclusive' name=Name;
 
 // `pport PpLamp : LampState`. P = provided, R = required, PR = both.
+// `e2e` protects the data end to end (E2E transformer in Rte_Write / Rte_Read).
 Port:
-    direction=PortDirection name=Name ':' interface=[Interface:ID];
+    direction=PortDirection name=Name ':' interface=[Interface:ID] (e2e?='e2e')?;
 
 PortDirection returns string:
     'pport' | 'rport' | 'prport';
@@ -114,7 +117,7 @@ Runnable:
     )*;
 
 Trigger:
-    TimingTrigger | InitTrigger | DataTrigger | OperationTrigger | ModeTrigger;
+    TimingTrigger | InitTrigger | DataTrigger | OperationTrigger | ModeTrigger | ErrorTrigger | CompletionTrigger;
 
 // TimingEvent.
 TimingTrigger:
@@ -136,9 +139,22 @@ OperationTrigger:
 ModeTrigger:
     'on' 'mode' port=[Port:Name];
 
+// Error events: `on data error P` DataReceiveErrorEvent (timeout, invalidation),
+// `on mode error P` SwcModeManagerErrorEvent, `on transformer error P`
+// TransformerErrorEvent (e.g. a failed E2E check).
+ErrorTrigger:
+    'on' source=('data' | 'mode' | 'transformer') 'error' port=[Port:Name];
+
+// Completion events: `on sent P` DataSendCompletedEvent, `on written P`
+// DataWriteCompletedEvent, `on result P` AsynchronousServerCallReturnsEvent,
+// `on switched P` ModeSwitchedAckEvent.
+CompletionTrigger:
+    'on' event=('sent' | 'written' | 'result' | 'switched') port=[Port:Name];
+
 // `reads A, B` / `writes P` / `calls Client` / `switches ModePort`.
+// `implicit reads A` / `implicit writes P`: Rte_IRead / Rte_IWrite on task copies.
 Access:
-    kind=AccessKind ports+=[Port:Name] (',' ports+=[Port:Name])*;
+    (implicit?='implicit')? kind=AccessKind ports+=[Port:Name] (',' ports+=[Port:Name])*;
 
 AccessKind returns string:
     'reads' | 'writes' | 'calls' | 'switches';
@@ -262,7 +278,8 @@ OsView:
 Name returns string:
     ID | 'data' | 'init' | 'call' | 'mode' | 'modes' | 'layer' | 'title' | 'in' | 'out' | 'inout'
     | 'core' | 'count' | 'depth' | 'event' | 'queue' | 'prio' | 'protocol' | 'startup' | 'cat' | 'of'
-    | 'resource' | 'exclusive';
+    | 'resource' | 'exclusive' | 'queued' | 'e2e' | 'implicit' | 'transformer'
+    | 'sent' | 'written' | 'result' | 'switched';
 
 hidden terminal WS: /\s+/;
 // Must come before INT: the lexer takes the first terminal that matches, and

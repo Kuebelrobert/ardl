@@ -31,9 +31,12 @@ export function elkPort(id: string, port: Port): ElkPort {
     };
 }
 
+/** Text next to a port: its name, and `E2E` for an end-to-end protected port. */
+export const portLabel = (port: Port): string => port.e2e ? `${port.name} · E2E` : port.name;
+
 /** Widest port label per side, used to reserve room for the labels inside or outside a box. */
 export function labelWidths(ports: Port[]): { west: number; east: number } {
-    const width = (side: string) => Math.max(0, ...ports.filter(p => portSide(p) === side).map(p => textWidth(p.name, 11)));
+    const width = (side: string) => Math.max(0, ...ports.filter(p => portSide(p) === side).map(p => textWidth(portLabel(p), 11)));
     return { west: width('WEST'), east: width('EAST') };
 }
 
@@ -49,11 +52,12 @@ export function labelWidths(ports: Port[]): { west: number; east: number } {
  */
 export function renderPort(laid: ElkPort, port: Port, inside: boolean, above = false): string {
     const iface = port.interface.ref;
-    const tooltip = `${port.direction} ${port.name} : ${iface?.name ?? '?'} (${iface?.kind ?? '?'})`;
+    const kind = [iface?.kind ?? '?', iface?.queued ? 'queued' : undefined, port.e2e ? 'E2E' : undefined].filter(Boolean).join(', ');
+    const tooltip = `${port.direction} ${port.name} : ${iface?.name ?? '?'} (${kind})`;
     const west = portSide(port) === 'WEST';
     const y = above ? (laid.y ?? 0) - 3 : (laid.y ?? 0) + PORT_SIZE - 2;
     // The label runs to the right of a west port inside the box, or of an east port outside it.
     const toRight = west === inside;
     const x = toRight ? (laid.x ?? 0) + PORT_SIZE + 5 : (laid.x ?? 0) - 5;
-    return portGlyph(laid, port.direction, iface?.kind, tooltip) + text(x, y, port.name, 'muted', toRight ? 'start' : 'end');
+    return portGlyph(laid, port.direction, iface?.kind, tooltip) + text(x, y, portLabel(port), 'muted', toRight ? 'start' : 'end');
 }

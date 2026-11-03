@@ -6,7 +6,7 @@
  * grammar and AST reflection; `ArdlModule` below overrides or adds the
  * services that make ARDL behave like AUTOSAR (naming, scoping, validation).
  */
-import { inject, type Module } from 'langium';
+import { DefaultDocumentBuilder, inject, type DeepPartial, type LangiumDocument, type Module } from 'langium';
 import {
     createDefaultModule,
     createDefaultSharedModule,
@@ -16,6 +16,7 @@ import {
     type PartialLangiumServices
 } from 'langium/lsp';
 import { ArdlGeneratedModule, ArdlGeneratedSharedModule } from './generated/module.js';
+import { isOs, type Model } from './generated/ast.js';
 import { ArdlNameProvider, ArdlScopeProvider } from './ardl-scope.js';
 import { ArdlValidator, registerValidationChecks } from './ardl-validator.js';
 
@@ -46,6 +47,26 @@ export const ArdlModule: Module<ArdlServices, PartialLangiumServices & ArdlAdded
 };
 
 /**
+ * The parts of an OS can sit in different files, and the OS checks of one part
+ * depend on the others (an event set in one file and waited for in another).
+ * Langium only relinks and revalidates documents that reference a changed one,
+ * so a document with an `os` block is revalidated after every change. There
+ * are only a few such documents, so this stays cheap.
+ */
+export class ArdlDocumentBuilder extends DefaultDocumentBuilder {
+    protected override shouldRelink(document: LangiumDocument, changedUris: Set<string>): boolean {
+        return super.shouldRelink(document, changedUris) || (document.parseResult.value as Model).elements.some(isOs);
+    }
+}
+
+/** Shared services that ARDL replaces. */
+export const ArdlSharedModule: Module<LangiumSharedServices, DeepPartial<LangiumSharedServices>> = {
+    workspace: {
+        DocumentBuilder: (services) => new ArdlDocumentBuilder(services)
+    }
+};
+
+/**
  * Creates the shared services (workspace, documents, index, LSP connection)
  * and the ARDL language services, and registers the language with the shared
  * service registry.
@@ -57,7 +78,7 @@ export function createArdlServices(context: DefaultSharedModuleContext): {
     shared: LangiumSharedServices;
     Ardl: ArdlServices;
 } {
-    const shared = inject(createDefaultSharedModule(context), ArdlGeneratedSharedModule);
+    const shared = inject(createDefaultSharedModule(context), ArdlGeneratedSharedModule, ArdlSharedModule);
     const Ardl = inject(createDefaultModule({ shared }), ArdlGeneratedModule, ArdlModule);
     shared.ServiceRegistry.register(Ardl);
     registerValidationChecks(Ardl);

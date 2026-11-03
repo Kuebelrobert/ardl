@@ -138,7 +138,8 @@ function clipToBox(p: Point, next: Point, box: ElkPort | undefined): void {
     if (p.x < x0 - 0.5 || p.x > x1 + 0.5 || p.y < y0 - 0.5 || p.y > y1 + 0.5) {
         return;
     }
-    if (Math.abs(p.y - next.y) < 0.5) {
+    // ELK's coordinates are off by up to half a pixel, so compare the two directions.
+    if (Math.abs(p.y - next.y) <= Math.abs(p.x - next.x)) {
         p.x = next.x > p.x ? x1 : x0;
     } else {
         p.y = next.y > p.y ? y1 : y0;

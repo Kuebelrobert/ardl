@@ -42,13 +42,16 @@ export type ArdlKeywordNames =
     | "cs"
     | "data"
     | "depth"
+    | "e2e"
     | "ecuAbstraction"
     | "ecual"
     | "enters"
+    | "error"
     | "event"
     | "every"
     | "exclusive"
     | "gives"
+    | "implicit"
     | "in"
     | "init"
     | "inout"
@@ -75,29 +78,35 @@ export type ArdlKeywordNames =
     | "prototype"
     | "prport"
     | "queue"
+    | "queued"
     | "reads"
     | "receives"
     | "resource"
+    | "result"
     | "rport"
     | "runnable"
     | "runs"
     | "semaphore"
     | "sends"
     | "sensorActuator"
+    | "sent"
     | "service"
     | "services"
     | "sets"
     | "sr"
     | "startup"
     | "swc"
+    | "switched"
     | "switches"
     | "takes"
     | "task"
     | "title"
+    | "transformer"
     | "uses"
     | "view"
     | "waits"
     | "writes"
+    | "written"
     | "{"
     | "}";
 
@@ -106,12 +115,14 @@ export type ArdlTokenNames = ArdlTerminalNames | ArdlKeywordNames;
 export interface Access extends langium.AstNode {
     readonly $container: Runnable;
     readonly $type: 'Access';
+    implicit: boolean;
     kind: AccessKind;
     ports: Array<langium.Reference<Port>>;
 }
 
 export const Access = {
     $type: 'Access',
+    implicit: 'implicit',
     kind: 'kind',
     ports: 'ports'
 } as const;
@@ -180,6 +191,23 @@ export type BswLayer = 'cdd' | 'ecual' | 'mcal' | 'services';
 
 export function isBswLayer(item: unknown): item is BswLayer {
     return item === 'services' || item === 'ecual' || item === 'mcal' || item === 'cdd';
+}
+
+export interface CompletionTrigger extends langium.AstNode {
+    readonly $container: Runnable;
+    readonly $type: 'CompletionTrigger';
+    event: 'result' | 'sent' | 'switched' | 'written';
+    port: langium.Reference<Port>;
+}
+
+export const CompletionTrigger = {
+    $type: 'CompletionTrigger',
+    event: 'event',
+    port: 'port'
+} as const;
+
+export function isCompletionTrigger(item: unknown): item is CompletionTrigger {
+    return reflection.isInstance(item, CompletionTrigger.$type);
 }
 
 export type Component = Bsw | Composition | Swc;
@@ -310,6 +338,23 @@ export function isElement(item: unknown): item is Element {
     return reflection.isInstance(item, Element.$type);
 }
 
+export interface ErrorTrigger extends langium.AstNode {
+    readonly $container: Runnable;
+    readonly $type: 'ErrorTrigger';
+    port: langium.Reference<Port>;
+    source: 'data' | 'mode' | 'transformer';
+}
+
+export const ErrorTrigger = {
+    $type: 'ErrorTrigger',
+    port: 'port',
+    source: 'source'
+} as const;
+
+export function isErrorTrigger(item: unknown): item is ErrorTrigger {
+    return reflection.isInstance(item, ErrorTrigger.$type);
+}
+
 export interface Event extends langium.AstNode {
     readonly $container: Os;
     readonly $type: 'Event';
@@ -359,13 +404,15 @@ export interface Interface extends langium.AstNode {
     kind: InterfaceKind;
     members: Array<InterfaceMember>;
     name: string;
+    queued: boolean;
 }
 
 export const Interface = {
     $type: 'Interface',
     kind: 'kind',
     members: 'members',
-    name: 'name'
+    name: 'name',
+    queued: 'queued'
 } as const;
 
 export function isInterface(item: unknown): item is Interface {
@@ -506,10 +553,10 @@ export function isMutex(item: unknown): item is Mutex {
     return reflection.isInstance(item, Mutex.$type);
 }
 
-export type Name = 'call' | 'cat' | 'core' | 'count' | 'data' | 'depth' | 'event' | 'exclusive' | 'in' | 'init' | 'inout' | 'layer' | 'mode' | 'modes' | 'of' | 'out' | 'prio' | 'protocol' | 'queue' | 'resource' | 'startup' | 'title' | string;
+export type Name = 'call' | 'cat' | 'core' | 'count' | 'data' | 'depth' | 'e2e' | 'event' | 'exclusive' | 'implicit' | 'in' | 'init' | 'inout' | 'layer' | 'mode' | 'modes' | 'of' | 'out' | 'prio' | 'protocol' | 'queue' | 'queued' | 'resource' | 'result' | 'sent' | 'startup' | 'switched' | 'title' | 'transformer' | 'written' | string;
 
 export function isName(item: unknown): item is Name {
-    return item === 'data' || item === 'init' || item === 'call' || item === 'mode' || item === 'modes' || item === 'layer' || item === 'title' || item === 'in' || item === 'out' || item === 'inout' || item === 'core' || item === 'count' || item === 'depth' || item === 'event' || item === 'queue' || item === 'prio' || item === 'protocol' || item === 'startup' || item === 'cat' || item === 'of' || item === 'resource' || item === 'exclusive' || (typeof item === 'string' && (/[_a-zA-Z][\w]*/.test(item)));
+    return item === 'data' || item === 'init' || item === 'call' || item === 'mode' || item === 'modes' || item === 'layer' || item === 'title' || item === 'in' || item === 'out' || item === 'inout' || item === 'core' || item === 'count' || item === 'depth' || item === 'event' || item === 'queue' || item === 'prio' || item === 'protocol' || item === 'startup' || item === 'cat' || item === 'of' || item === 'resource' || item === 'exclusive' || item === 'queued' || item === 'e2e' || item === 'implicit' || item === 'transformer' || item === 'sent' || item === 'written' || item === 'result' || item === 'switched' || (typeof item === 'string' && (/[_a-zA-Z][\w]*/.test(item)));
 }
 
 export interface Operation extends langium.AstNode {
@@ -625,6 +672,7 @@ export interface Port extends langium.AstNode {
     readonly $container: Bsw | Composition | Swc;
     readonly $type: 'Port';
     direction: PortDirection;
+    e2e: boolean;
     interface: langium.Reference<Interface>;
     name: Name;
 }
@@ -632,6 +680,7 @@ export interface Port extends langium.AstNode {
 export const Port = {
     $type: 'Port',
     direction: 'direction',
+    e2e: 'e2e',
     interface: 'interface',
     name: 'name'
 } as const;
@@ -850,7 +899,7 @@ export function isTimingTrigger(item: unknown): item is TimingTrigger {
     return reflection.isInstance(item, TimingTrigger.$type);
 }
 
-export type Trigger = DataTrigger | InitTrigger | ModeTrigger | OperationTrigger | TimingTrigger;
+export type Trigger = CompletionTrigger | DataTrigger | ErrorTrigger | InitTrigger | ModeTrigger | OperationTrigger | TimingTrigger;
 
 export const Trigger = {
     $type: 'Trigger'
@@ -880,6 +929,7 @@ export type ArdlAstType = {
     Access: Access
     Argument: Argument
     Bsw: Bsw
+    CompletionTrigger: CompletionTrigger
     Component: Component
     ComponentView: ComponentView
     Composition: Composition
@@ -888,6 +938,7 @@ export type ArdlAstType = {
     DataElement: DataElement
     DataTrigger: DataTrigger
     Element: Element
+    ErrorTrigger: ErrorTrigger
     Event: Event
     ExclusiveArea: ExclusiveArea
     InitTrigger: InitTrigger
@@ -927,6 +978,11 @@ export class ArdlAstReflection extends langium.AbstractAstReflection {
         Access: {
             name: Access.$type,
             properties: {
+                implicit: {
+                    name: Access.implicit,
+                    defaultValue: false,
+                    optional: true
+                },
                 kind: {
                     name: Access.kind
                 },
@@ -985,6 +1041,19 @@ export class ArdlAstReflection extends langium.AbstractAstReflection {
                 }
             },
             superTypes: [Component.$type, RunnableOwner.$type]
+        },
+        CompletionTrigger: {
+            name: CompletionTrigger.$type,
+            properties: {
+                event: {
+                    name: CompletionTrigger.event
+                },
+                port: {
+                    name: CompletionTrigger.port,
+                    referenceType: Port.$type
+                }
+            },
+            superTypes: [Trigger.$type]
         },
         Component: {
             name: Component.$type,
@@ -1090,6 +1159,19 @@ export class ArdlAstReflection extends langium.AbstractAstReflection {
             },
             superTypes: []
         },
+        ErrorTrigger: {
+            name: ErrorTrigger.$type,
+            properties: {
+                port: {
+                    name: ErrorTrigger.port,
+                    referenceType: Port.$type
+                },
+                source: {
+                    name: ErrorTrigger.source
+                }
+            },
+            superTypes: [Trigger.$type]
+        },
         Event: {
             name: Event.$type,
             properties: {
@@ -1127,6 +1209,11 @@ export class ArdlAstReflection extends langium.AbstractAstReflection {
                 },
                 name: {
                     name: Interface.name
+                },
+                queued: {
+                    name: Interface.queued,
+                    defaultValue: false,
+                    optional: true
                 }
             },
             superTypes: [Element.$type]
@@ -1333,6 +1420,11 @@ export class ArdlAstReflection extends langium.AbstractAstReflection {
             properties: {
                 direction: {
                     name: Port.direction
+                },
+                e2e: {
+                    name: Port.e2e,
+                    defaultValue: false,
+                    optional: true
                 },
                 interface: {
                     name: Port.interface,

@@ -55,14 +55,14 @@ export const ArdlGrammar = (): Grammar => loadedArdlGrammar ?? (loadedArdlGramma
           {
             "$type": "RuleCall",
             "rule": {
-              "$ref": "#/rules@34"
+              "$ref": "#/rules@36"
             },
             "arguments": []
           },
           {
             "$type": "RuleCall",
             "rule": {
-              "$ref": "#/rules@46"
+              "$ref": "#/rules@48"
             },
             "arguments": []
           }
@@ -101,10 +101,20 @@ export const ArdlGrammar = (): Grammar => loadedArdlGrammar ?? (loadedArdlGramma
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@54"
+                "$ref": "#/rules@56"
               },
               "arguments": []
             }
+          },
+          {
+            "$type": "Assignment",
+            "feature": "queued",
+            "operator": "?=",
+            "terminal": {
+              "$type": "Keyword",
+              "value": "queued"
+            },
+            "cardinality": "?"
           },
           {
             "$type": "Keyword",
@@ -212,7 +222,7 @@ export const ArdlGrammar = (): Grammar => loadedArdlGrammar ?? (loadedArdlGramma
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@51"
+                "$ref": "#/rules@53"
               },
               "arguments": []
             }
@@ -252,7 +262,7 @@ export const ArdlGrammar = (): Grammar => loadedArdlGrammar ?? (loadedArdlGramma
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@51"
+                "$ref": "#/rules@53"
               },
               "arguments": []
             }
@@ -358,7 +368,7 @@ export const ArdlGrammar = (): Grammar => loadedArdlGrammar ?? (loadedArdlGramma
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@51"
+                "$ref": "#/rules@53"
               },
               "arguments": []
             }
@@ -470,7 +480,7 @@ export const ArdlGrammar = (): Grammar => loadedArdlGrammar ?? (loadedArdlGramma
         "terminal": {
           "$type": "RuleCall",
           "rule": {
-            "$ref": "#/rules@51"
+            "$ref": "#/rules@53"
           },
           "arguments": []
         }
@@ -489,7 +499,7 @@ export const ArdlGrammar = (): Grammar => loadedArdlGrammar ?? (loadedArdlGramma
           {
             "$type": "RuleCall",
             "rule": {
-              "$ref": "#/rules@51"
+              "$ref": "#/rules@53"
             },
             "arguments": []
           },
@@ -503,7 +513,7 @@ export const ArdlGrammar = (): Grammar => loadedArdlGrammar ?? (loadedArdlGramma
               {
                 "$type": "RuleCall",
                 "rule": {
-                  "$ref": "#/rules@55"
+                  "$ref": "#/rules@57"
                 },
                 "arguments": []
               },
@@ -543,7 +553,7 @@ export const ArdlGrammar = (): Grammar => loadedArdlGrammar ?? (loadedArdlGramma
           {
             "$type": "RuleCall",
             "rule": {
-              "$ref": "#/rules@30"
+              "$ref": "#/rules@32"
             },
             "arguments": []
           }
@@ -582,7 +592,7 @@ export const ArdlGrammar = (): Grammar => loadedArdlGrammar ?? (loadedArdlGramma
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@54"
+                "$ref": "#/rules@56"
               },
               "arguments": []
             }
@@ -654,7 +664,7 @@ export const ArdlGrammar = (): Grammar => loadedArdlGrammar ?? (loadedArdlGramma
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@54"
+                "$ref": "#/rules@56"
               },
               "arguments": []
             }
@@ -694,7 +704,7 @@ export const ArdlGrammar = (): Grammar => loadedArdlGrammar ?? (loadedArdlGramma
                   "terminal": {
                     "$type": "RuleCall",
                     "rule": {
-                      "$ref": "#/rules@54"
+                      "$ref": "#/rules@56"
                     },
                     "arguments": []
                   },
@@ -721,7 +731,7 @@ export const ArdlGrammar = (): Grammar => loadedArdlGrammar ?? (loadedArdlGramma
                       "terminal": {
                         "$type": "RuleCall",
                         "rule": {
-                          "$ref": "#/rules@54"
+                          "$ref": "#/rules@56"
                         },
                         "arguments": []
                       },
@@ -857,7 +867,7 @@ export const ArdlGrammar = (): Grammar => loadedArdlGrammar ?? (loadedArdlGramma
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@51"
+                "$ref": "#/rules@53"
               },
               "arguments": []
             }
@@ -893,7 +903,7 @@ export const ArdlGrammar = (): Grammar => loadedArdlGrammar ?? (loadedArdlGramma
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@51"
+                "$ref": "#/rules@53"
               },
               "arguments": []
             }
@@ -914,13 +924,23 @@ export const ArdlGrammar = (): Grammar => loadedArdlGrammar ?? (loadedArdlGramma
               "terminal": {
                 "$type": "RuleCall",
                 "rule": {
-                  "$ref": "#/rules@54"
+                  "$ref": "#/rules@56"
                 },
                 "arguments": []
               },
               "deprecatedSyntax": false,
               "isMulti": false
             }
+          },
+          {
+            "$type": "Assignment",
+            "feature": "e2e",
+            "operator": "?=",
+            "terminal": {
+              "$type": "Keyword",
+              "value": "e2e"
+            },
+            "cardinality": "?"
           }
         ]
       },
@@ -970,7 +990,7 @@ export const ArdlGrammar = (): Grammar => loadedArdlGrammar ?? (loadedArdlGramma
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@51"
+                "$ref": "#/rules@53"
               },
               "arguments": []
             }
@@ -997,7 +1017,7 @@ export const ArdlGrammar = (): Grammar => loadedArdlGrammar ?? (loadedArdlGramma
                 "terminal": {
                   "$type": "RuleCall",
                   "rule": {
-                    "$ref": "#/rules@28"
+                    "$ref": "#/rules@30"
                   },
                   "arguments": []
                 }
@@ -1021,7 +1041,7 @@ export const ArdlGrammar = (): Grammar => loadedArdlGrammar ?? (loadedArdlGramma
                       "terminal": {
                         "$type": "RuleCall",
                         "rule": {
-                          "$ref": "#/rules@51"
+                          "$ref": "#/rules@53"
                         },
                         "arguments": []
                       },
@@ -1048,7 +1068,7 @@ export const ArdlGrammar = (): Grammar => loadedArdlGrammar ?? (loadedArdlGramma
                           "terminal": {
                             "$type": "RuleCall",
                             "rule": {
-                              "$ref": "#/rules@51"
+                              "$ref": "#/rules@53"
                             },
                             "arguments": []
                           },
@@ -1110,6 +1130,20 @@ export const ArdlGrammar = (): Grammar => loadedArdlGrammar ?? (loadedArdlGramma
               "$ref": "#/rules@27"
             },
             "arguments": []
+          },
+          {
+            "$type": "RuleCall",
+            "rule": {
+              "$ref": "#/rules@28"
+            },
+            "arguments": []
+          },
+          {
+            "$type": "RuleCall",
+            "rule": {
+              "$ref": "#/rules@29"
+            },
+            "arguments": []
           }
         ]
       },
@@ -1134,7 +1168,7 @@ export const ArdlGrammar = (): Grammar => loadedArdlGrammar ?? (loadedArdlGramma
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@53"
+                "$ref": "#/rules@55"
               },
               "arguments": []
             }
@@ -1198,7 +1232,7 @@ export const ArdlGrammar = (): Grammar => loadedArdlGrammar ?? (loadedArdlGramma
               "terminal": {
                 "$type": "RuleCall",
                 "rule": {
-                  "$ref": "#/rules@51"
+                  "$ref": "#/rules@53"
                 },
                 "arguments": []
               },
@@ -1238,7 +1272,7 @@ export const ArdlGrammar = (): Grammar => loadedArdlGrammar ?? (loadedArdlGramma
               "terminal": {
                 "$type": "RuleCall",
                 "rule": {
-                  "$ref": "#/rules@51"
+                  "$ref": "#/rules@53"
                 },
                 "arguments": []
               },
@@ -1278,7 +1312,131 @@ export const ArdlGrammar = (): Grammar => loadedArdlGrammar ?? (loadedArdlGramma
               "terminal": {
                 "$type": "RuleCall",
                 "rule": {
-                  "$ref": "#/rules@51"
+                  "$ref": "#/rules@53"
+                },
+                "arguments": []
+              },
+              "deprecatedSyntax": false,
+              "isMulti": false
+            }
+          }
+        ]
+      },
+      "entry": false,
+      "fragment": false,
+      "parameters": []
+    },
+    {
+      "$type": "ParserRule",
+      "name": "ErrorTrigger",
+      "definition": {
+        "$type": "Group",
+        "elements": [
+          {
+            "$type": "Keyword",
+            "value": "on"
+          },
+          {
+            "$type": "Assignment",
+            "feature": "source",
+            "operator": "=",
+            "terminal": {
+              "$type": "Alternatives",
+              "elements": [
+                {
+                  "$type": "Keyword",
+                  "value": "data"
+                },
+                {
+                  "$type": "Keyword",
+                  "value": "mode"
+                },
+                {
+                  "$type": "Keyword",
+                  "value": "transformer"
+                }
+              ]
+            }
+          },
+          {
+            "$type": "Keyword",
+            "value": "error"
+          },
+          {
+            "$type": "Assignment",
+            "feature": "port",
+            "operator": "=",
+            "terminal": {
+              "$type": "CrossReference",
+              "type": {
+                "$ref": "#/rules@19"
+              },
+              "terminal": {
+                "$type": "RuleCall",
+                "rule": {
+                  "$ref": "#/rules@53"
+                },
+                "arguments": []
+              },
+              "deprecatedSyntax": false,
+              "isMulti": false
+            }
+          }
+        ]
+      },
+      "entry": false,
+      "fragment": false,
+      "parameters": []
+    },
+    {
+      "$type": "ParserRule",
+      "name": "CompletionTrigger",
+      "definition": {
+        "$type": "Group",
+        "elements": [
+          {
+            "$type": "Keyword",
+            "value": "on"
+          },
+          {
+            "$type": "Assignment",
+            "feature": "event",
+            "operator": "=",
+            "terminal": {
+              "$type": "Alternatives",
+              "elements": [
+                {
+                  "$type": "Keyword",
+                  "value": "sent"
+                },
+                {
+                  "$type": "Keyword",
+                  "value": "written"
+                },
+                {
+                  "$type": "Keyword",
+                  "value": "result"
+                },
+                {
+                  "$type": "Keyword",
+                  "value": "switched"
+                }
+              ]
+            }
+          },
+          {
+            "$type": "Assignment",
+            "feature": "port",
+            "operator": "=",
+            "terminal": {
+              "$type": "CrossReference",
+              "type": {
+                "$ref": "#/rules@19"
+              },
+              "terminal": {
+                "$type": "RuleCall",
+                "rule": {
+                  "$ref": "#/rules@53"
                 },
                 "arguments": []
               },
@@ -1300,12 +1458,22 @@ export const ArdlGrammar = (): Grammar => loadedArdlGrammar ?? (loadedArdlGramma
         "elements": [
           {
             "$type": "Assignment",
+            "feature": "implicit",
+            "operator": "?=",
+            "terminal": {
+              "$type": "Keyword",
+              "value": "implicit"
+            },
+            "cardinality": "?"
+          },
+          {
+            "$type": "Assignment",
             "feature": "kind",
             "operator": "=",
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@29"
+                "$ref": "#/rules@31"
               },
               "arguments": []
             }
@@ -1322,7 +1490,7 @@ export const ArdlGrammar = (): Grammar => loadedArdlGrammar ?? (loadedArdlGramma
               "terminal": {
                 "$type": "RuleCall",
                 "rule": {
-                  "$ref": "#/rules@51"
+                  "$ref": "#/rules@53"
                 },
                 "arguments": []
               },
@@ -1349,7 +1517,7 @@ export const ArdlGrammar = (): Grammar => loadedArdlGrammar ?? (loadedArdlGramma
                   "terminal": {
                     "$type": "RuleCall",
                     "rule": {
-                      "$ref": "#/rules@51"
+                      "$ref": "#/rules@53"
                     },
                     "arguments": []
                   },
@@ -1412,7 +1580,7 @@ export const ArdlGrammar = (): Grammar => loadedArdlGrammar ?? (loadedArdlGramma
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@54"
+                "$ref": "#/rules@56"
               },
               "arguments": []
             }
@@ -1443,7 +1611,7 @@ export const ArdlGrammar = (): Grammar => loadedArdlGrammar ?? (loadedArdlGramma
                 "terminal": {
                   "$type": "RuleCall",
                   "rule": {
-                    "$ref": "#/rules@31"
+                    "$ref": "#/rules@33"
                   },
                   "arguments": []
                 }
@@ -1455,7 +1623,7 @@ export const ArdlGrammar = (): Grammar => loadedArdlGrammar ?? (loadedArdlGramma
                 "terminal": {
                   "$type": "RuleCall",
                   "rule": {
-                    "$ref": "#/rules@32"
+                    "$ref": "#/rules@34"
                   },
                   "arguments": []
                 }
@@ -1493,7 +1661,7 @@ export const ArdlGrammar = (): Grammar => loadedArdlGrammar ?? (loadedArdlGramma
                 "terminal": {
                   "$type": "RuleCall",
                   "rule": {
-                    "$ref": "#/rules@51"
+                    "$ref": "#/rules@53"
                   },
                   "arguments": []
                 }
@@ -1517,7 +1685,7 @@ export const ArdlGrammar = (): Grammar => loadedArdlGrammar ?? (loadedArdlGramma
               "terminal": {
                 "$type": "RuleCall",
                 "rule": {
-                  "$ref": "#/rules@54"
+                  "$ref": "#/rules@56"
                 },
                 "arguments": []
               },
@@ -1548,7 +1716,7 @@ export const ArdlGrammar = (): Grammar => loadedArdlGrammar ?? (loadedArdlGramma
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@33"
+                "$ref": "#/rules@35"
               },
               "arguments": []
             }
@@ -1564,7 +1732,7 @@ export const ArdlGrammar = (): Grammar => loadedArdlGrammar ?? (loadedArdlGramma
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@33"
+                "$ref": "#/rules@35"
               },
               "arguments": []
             }
@@ -1591,12 +1759,12 @@ export const ArdlGrammar = (): Grammar => loadedArdlGrammar ?? (loadedArdlGramma
                 "terminal": {
                   "$type": "CrossReference",
                   "type": {
-                    "$ref": "#/rules@31"
+                    "$ref": "#/rules@33"
                   },
                   "terminal": {
                     "$type": "RuleCall",
                     "rule": {
-                      "$ref": "#/rules@51"
+                      "$ref": "#/rules@53"
                     },
                     "arguments": []
                   },
@@ -1623,7 +1791,7 @@ export const ArdlGrammar = (): Grammar => loadedArdlGrammar ?? (loadedArdlGramma
               "terminal": {
                 "$type": "RuleCall",
                 "rule": {
-                  "$ref": "#/rules@51"
+                  "$ref": "#/rules@53"
                 },
                 "arguments": []
               },
@@ -1654,7 +1822,7 @@ export const ArdlGrammar = (): Grammar => loadedArdlGrammar ?? (loadedArdlGramma
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@54"
+                "$ref": "#/rules@56"
               },
               "arguments": []
             }
@@ -1673,7 +1841,7 @@ export const ArdlGrammar = (): Grammar => loadedArdlGrammar ?? (loadedArdlGramma
                 "terminal": {
                   "$type": "RuleCall",
                   "rule": {
-                    "$ref": "#/rules@54"
+                    "$ref": "#/rules@56"
                   },
                   "arguments": []
                 }
@@ -1695,7 +1863,7 @@ export const ArdlGrammar = (): Grammar => loadedArdlGrammar ?? (loadedArdlGramma
                 "terminal": {
                   "$type": "RuleCall",
                   "rule": {
-                    "$ref": "#/rules@35"
+                    "$ref": "#/rules@37"
                   },
                   "arguments": []
                 }
@@ -1707,7 +1875,7 @@ export const ArdlGrammar = (): Grammar => loadedArdlGrammar ?? (loadedArdlGramma
                 "terminal": {
                   "$type": "RuleCall",
                   "rule": {
-                    "$ref": "#/rules@36"
+                    "$ref": "#/rules@38"
                   },
                   "arguments": []
                 }
@@ -1719,7 +1887,7 @@ export const ArdlGrammar = (): Grammar => loadedArdlGrammar ?? (loadedArdlGramma
                 "terminal": {
                   "$type": "RuleCall",
                   "rule": {
-                    "$ref": "#/rules@40"
+                    "$ref": "#/rules@42"
                   },
                   "arguments": []
                 }
@@ -1754,7 +1922,7 @@ export const ArdlGrammar = (): Grammar => loadedArdlGrammar ?? (loadedArdlGramma
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@54"
+                "$ref": "#/rules@56"
               },
               "arguments": []
             }
@@ -1776,7 +1944,7 @@ export const ArdlGrammar = (): Grammar => loadedArdlGrammar ?? (loadedArdlGramma
                     "terminal": {
                       "$type": "RuleCall",
                       "rule": {
-                        "$ref": "#/rules@55"
+                        "$ref": "#/rules@57"
                       },
                       "arguments": []
                     }
@@ -1797,7 +1965,7 @@ export const ArdlGrammar = (): Grammar => loadedArdlGrammar ?? (loadedArdlGramma
                     "terminal": {
                       "$type": "RuleCall",
                       "rule": {
-                        "$ref": "#/rules@55"
+                        "$ref": "#/rules@57"
                       },
                       "arguments": []
                     }
@@ -1818,7 +1986,7 @@ export const ArdlGrammar = (): Grammar => loadedArdlGrammar ?? (loadedArdlGramma
                     "terminal": {
                       "$type": "RuleCall",
                       "rule": {
-                        "$ref": "#/rules@53"
+                        "$ref": "#/rules@55"
                       },
                       "arguments": []
                     }
@@ -1857,7 +2025,7 @@ export const ArdlGrammar = (): Grammar => loadedArdlGrammar ?? (loadedArdlGramma
                     "terminal": {
                       "$type": "RuleCall",
                       "rule": {
-                        "$ref": "#/rules@37"
+                        "$ref": "#/rules@39"
                       },
                       "arguments": []
                     }
@@ -1876,7 +2044,7 @@ export const ArdlGrammar = (): Grammar => loadedArdlGrammar ?? (loadedArdlGramma
                         "terminal": {
                           "$type": "RuleCall",
                           "rule": {
-                            "$ref": "#/rules@37"
+                            "$ref": "#/rules@39"
                           },
                           "arguments": []
                         }
@@ -1893,7 +2061,7 @@ export const ArdlGrammar = (): Grammar => loadedArdlGrammar ?? (loadedArdlGramma
                 "terminal": {
                   "$type": "RuleCall",
                   "rule": {
-                    "$ref": "#/rules@38"
+                    "$ref": "#/rules@40"
                   },
                   "arguments": []
                 }
@@ -1924,7 +2092,7 @@ export const ArdlGrammar = (): Grammar => loadedArdlGrammar ?? (loadedArdlGramma
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@54"
+                "$ref": "#/rules@56"
               },
               "arguments": []
             }
@@ -1946,7 +2114,7 @@ export const ArdlGrammar = (): Grammar => loadedArdlGrammar ?? (loadedArdlGramma
                     "terminal": {
                       "$type": "RuleCall",
                       "rule": {
-                        "$ref": "#/rules@55"
+                        "$ref": "#/rules@57"
                       },
                       "arguments": []
                     }
@@ -1967,7 +2135,7 @@ export const ArdlGrammar = (): Grammar => loadedArdlGrammar ?? (loadedArdlGramma
                     "terminal": {
                       "$type": "RuleCall",
                       "rule": {
-                        "$ref": "#/rules@55"
+                        "$ref": "#/rules@57"
                       },
                       "arguments": []
                     }
@@ -1988,7 +2156,7 @@ export const ArdlGrammar = (): Grammar => loadedArdlGrammar ?? (loadedArdlGramma
                     "terminal": {
                       "$type": "RuleCall",
                       "rule": {
-                        "$ref": "#/rules@55"
+                        "$ref": "#/rules@57"
                       },
                       "arguments": []
                     }
@@ -2002,7 +2170,7 @@ export const ArdlGrammar = (): Grammar => loadedArdlGrammar ?? (loadedArdlGramma
                 "terminal": {
                   "$type": "RuleCall",
                   "rule": {
-                    "$ref": "#/rules@38"
+                    "$ref": "#/rules@40"
                   },
                   "arguments": []
                 }
@@ -2034,7 +2202,7 @@ export const ArdlGrammar = (): Grammar => loadedArdlGrammar ?? (loadedArdlGramma
               "terminal": {
                 "$type": "RuleCall",
                 "rule": {
-                  "$ref": "#/rules@54"
+                  "$ref": "#/rules@56"
                 },
                 "arguments": []
               },
@@ -2058,7 +2226,7 @@ export const ArdlGrammar = (): Grammar => loadedArdlGrammar ?? (loadedArdlGramma
               "terminal": {
                 "$type": "RuleCall",
                 "rule": {
-                  "$ref": "#/rules@51"
+                  "$ref": "#/rules@53"
                 },
                 "arguments": []
               },
@@ -2085,7 +2253,7 @@ export const ArdlGrammar = (): Grammar => loadedArdlGrammar ?? (loadedArdlGramma
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@39"
+                "$ref": "#/rules@41"
               },
               "arguments": []
             }
@@ -2097,12 +2265,12 @@ export const ArdlGrammar = (): Grammar => loadedArdlGrammar ?? (loadedArdlGramma
             "terminal": {
               "$type": "CrossReference",
               "type": {
-                "$ref": "#/rules@40"
+                "$ref": "#/rules@42"
               },
               "terminal": {
                 "$type": "RuleCall",
                 "rule": {
-                  "$ref": "#/rules@54"
+                  "$ref": "#/rules@56"
                 },
                 "arguments": []
               },
@@ -2124,12 +2292,12 @@ export const ArdlGrammar = (): Grammar => loadedArdlGrammar ?? (loadedArdlGramma
                 "terminal": {
                   "$type": "CrossReference",
                   "type": {
-                    "$ref": "#/rules@40"
+                    "$ref": "#/rules@42"
                   },
                   "terminal": {
                     "$type": "RuleCall",
                     "rule": {
-                      "$ref": "#/rules@54"
+                      "$ref": "#/rules@56"
                     },
                     "arguments": []
                   },
@@ -2196,20 +2364,6 @@ export const ArdlGrammar = (): Grammar => loadedArdlGrammar ?? (loadedArdlGramma
           {
             "$type": "RuleCall",
             "rule": {
-              "$ref": "#/rules@41"
-            },
-            "arguments": []
-          },
-          {
-            "$type": "RuleCall",
-            "rule": {
-              "$ref": "#/rules@42"
-            },
-            "arguments": []
-          },
-          {
-            "$type": "RuleCall",
-            "rule": {
               "$ref": "#/rules@43"
             },
             "arguments": []
@@ -2225,6 +2379,20 @@ export const ArdlGrammar = (): Grammar => loadedArdlGrammar ?? (loadedArdlGramma
             "$type": "RuleCall",
             "rule": {
               "$ref": "#/rules@45"
+            },
+            "arguments": []
+          },
+          {
+            "$type": "RuleCall",
+            "rule": {
+              "$ref": "#/rules@46"
+            },
+            "arguments": []
+          },
+          {
+            "$type": "RuleCall",
+            "rule": {
+              "$ref": "#/rules@47"
             },
             "arguments": []
           }
@@ -2251,7 +2419,7 @@ export const ArdlGrammar = (): Grammar => loadedArdlGrammar ?? (loadedArdlGramma
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@54"
+                "$ref": "#/rules@56"
               },
               "arguments": []
             }
@@ -2279,7 +2447,7 @@ export const ArdlGrammar = (): Grammar => loadedArdlGrammar ?? (loadedArdlGramma
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@54"
+                "$ref": "#/rules@56"
               },
               "arguments": []
             }
@@ -2298,7 +2466,7 @@ export const ArdlGrammar = (): Grammar => loadedArdlGrammar ?? (loadedArdlGramma
                 "terminal": {
                   "$type": "RuleCall",
                   "rule": {
-                    "$ref": "#/rules@54"
+                    "$ref": "#/rules@56"
                   },
                   "arguments": []
                 }
@@ -2329,7 +2497,7 @@ export const ArdlGrammar = (): Grammar => loadedArdlGrammar ?? (loadedArdlGramma
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@54"
+                "$ref": "#/rules@56"
               },
               "arguments": []
             }
@@ -2348,7 +2516,7 @@ export const ArdlGrammar = (): Grammar => loadedArdlGrammar ?? (loadedArdlGramma
                 "terminal": {
                   "$type": "RuleCall",
                   "rule": {
-                    "$ref": "#/rules@55"
+                    "$ref": "#/rules@57"
                   },
                   "arguments": []
                 }
@@ -2379,7 +2547,7 @@ export const ArdlGrammar = (): Grammar => loadedArdlGrammar ?? (loadedArdlGramma
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@54"
+                "$ref": "#/rules@56"
               },
               "arguments": []
             }
@@ -2420,7 +2588,7 @@ export const ArdlGrammar = (): Grammar => loadedArdlGrammar ?? (loadedArdlGramma
                 "terminal": {
                   "$type": "RuleCall",
                   "rule": {
-                    "$ref": "#/rules@55"
+                    "$ref": "#/rules@57"
                   },
                   "arguments": []
                 }
@@ -2451,7 +2619,7 @@ export const ArdlGrammar = (): Grammar => loadedArdlGrammar ?? (loadedArdlGramma
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@54"
+                "$ref": "#/rules@56"
               },
               "arguments": []
             }
@@ -2471,20 +2639,6 @@ export const ArdlGrammar = (): Grammar => loadedArdlGrammar ?? (loadedArdlGramma
           {
             "$type": "RuleCall",
             "rule": {
-              "$ref": "#/rules@47"
-            },
-            "arguments": []
-          },
-          {
-            "$type": "RuleCall",
-            "rule": {
-              "$ref": "#/rules@48"
-            },
-            "arguments": []
-          },
-          {
-            "$type": "RuleCall",
-            "rule": {
               "$ref": "#/rules@49"
             },
             "arguments": []
@@ -2493,6 +2647,20 @@ export const ArdlGrammar = (): Grammar => loadedArdlGrammar ?? (loadedArdlGramma
             "$type": "RuleCall",
             "rule": {
               "$ref": "#/rules@50"
+            },
+            "arguments": []
+          },
+          {
+            "$type": "RuleCall",
+            "rule": {
+              "$ref": "#/rules@51"
+            },
+            "arguments": []
+          },
+          {
+            "$type": "RuleCall",
+            "rule": {
+              "$ref": "#/rules@52"
             },
             "arguments": []
           }
@@ -2519,7 +2687,7 @@ export const ArdlGrammar = (): Grammar => loadedArdlGrammar ?? (loadedArdlGramma
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@54"
+                "$ref": "#/rules@56"
               },
               "arguments": []
             }
@@ -2535,12 +2703,12 @@ export const ArdlGrammar = (): Grammar => loadedArdlGrammar ?? (loadedArdlGramma
             "terminal": {
               "$type": "CrossReference",
               "type": {
-                "$ref": "#/rules@30"
+                "$ref": "#/rules@32"
               },
               "terminal": {
                 "$type": "RuleCall",
                 "rule": {
-                  "$ref": "#/rules@54"
+                  "$ref": "#/rules@56"
                 },
                 "arguments": []
               },
@@ -2562,7 +2730,7 @@ export const ArdlGrammar = (): Grammar => loadedArdlGrammar ?? (loadedArdlGramma
                 "terminal": {
                   "$type": "RuleCall",
                   "rule": {
-                    "$ref": "#/rules@56"
+                    "$ref": "#/rules@58"
                   },
                   "arguments": []
                 }
@@ -2593,7 +2761,7 @@ export const ArdlGrammar = (): Grammar => loadedArdlGrammar ?? (loadedArdlGramma
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@54"
+                "$ref": "#/rules@56"
               },
               "arguments": []
             }
@@ -2614,7 +2782,7 @@ export const ArdlGrammar = (): Grammar => loadedArdlGrammar ?? (loadedArdlGramma
               "terminal": {
                 "$type": "RuleCall",
                 "rule": {
-                  "$ref": "#/rules@54"
+                  "$ref": "#/rules@56"
                 },
                 "arguments": []
               },
@@ -2636,7 +2804,7 @@ export const ArdlGrammar = (): Grammar => loadedArdlGrammar ?? (loadedArdlGramma
                 "terminal": {
                   "$type": "RuleCall",
                   "rule": {
-                    "$ref": "#/rules@56"
+                    "$ref": "#/rules@58"
                   },
                   "arguments": []
                 }
@@ -2667,7 +2835,7 @@ export const ArdlGrammar = (): Grammar => loadedArdlGrammar ?? (loadedArdlGramma
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@54"
+                "$ref": "#/rules@56"
               },
               "arguments": []
             }
@@ -2695,7 +2863,7 @@ export const ArdlGrammar = (): Grammar => loadedArdlGrammar ?? (loadedArdlGramma
                   "terminal": {
                     "$type": "RuleCall",
                     "rule": {
-                      "$ref": "#/rules@54"
+                      "$ref": "#/rules@56"
                     },
                     "arguments": []
                   },
@@ -2722,7 +2890,7 @@ export const ArdlGrammar = (): Grammar => loadedArdlGrammar ?? (loadedArdlGramma
                       "terminal": {
                         "$type": "RuleCall",
                         "rule": {
-                          "$ref": "#/rules@54"
+                          "$ref": "#/rules@56"
                         },
                         "arguments": []
                       },
@@ -2754,7 +2922,7 @@ export const ArdlGrammar = (): Grammar => loadedArdlGrammar ?? (loadedArdlGramma
                 "terminal": {
                   "$type": "RuleCall",
                   "rule": {
-                    "$ref": "#/rules@56"
+                    "$ref": "#/rules@58"
                   },
                   "arguments": []
                 }
@@ -2785,7 +2953,7 @@ export const ArdlGrammar = (): Grammar => loadedArdlGrammar ?? (loadedArdlGramma
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@54"
+                "$ref": "#/rules@56"
               },
               "arguments": []
             }
@@ -2801,12 +2969,12 @@ export const ArdlGrammar = (): Grammar => loadedArdlGrammar ?? (loadedArdlGramma
             "terminal": {
               "$type": "CrossReference",
               "type": {
-                "$ref": "#/rules@34"
+                "$ref": "#/rules@36"
               },
               "terminal": {
                 "$type": "RuleCall",
                 "rule": {
-                  "$ref": "#/rules@54"
+                  "$ref": "#/rules@56"
                 },
                 "arguments": []
               },
@@ -2828,7 +2996,7 @@ export const ArdlGrammar = (): Grammar => loadedArdlGrammar ?? (loadedArdlGramma
                 "terminal": {
                   "$type": "RuleCall",
                   "rule": {
-                    "$ref": "#/rules@56"
+                    "$ref": "#/rules@58"
                   },
                   "arguments": []
                 }
@@ -2852,7 +3020,7 @@ export const ArdlGrammar = (): Grammar => loadedArdlGrammar ?? (loadedArdlGramma
           {
             "$type": "RuleCall",
             "rule": {
-              "$ref": "#/rules@54"
+              "$ref": "#/rules@56"
             },
             "arguments": []
           },
@@ -2943,6 +3111,38 @@ export const ArdlGrammar = (): Grammar => loadedArdlGrammar ?? (loadedArdlGramma
           {
             "$type": "Keyword",
             "value": "exclusive"
+          },
+          {
+            "$type": "Keyword",
+            "value": "queued"
+          },
+          {
+            "$type": "Keyword",
+            "value": "e2e"
+          },
+          {
+            "$type": "Keyword",
+            "value": "implicit"
+          },
+          {
+            "$type": "Keyword",
+            "value": "transformer"
+          },
+          {
+            "$type": "Keyword",
+            "value": "sent"
+          },
+          {
+            "$type": "Keyword",
+            "value": "written"
+          },
+          {
+            "$type": "Keyword",
+            "value": "result"
+          },
+          {
+            "$type": "Keyword",
+            "value": "switched"
           }
         ]
       },

@@ -34,16 +34,17 @@ The second and third file declare no interface, component or BSW module again; t
 
 | Element | Syntax |
 |---|---|
-| Interface | `interface sr\|cs\|mode\|nv\|param Name { ... }` |
+| Interface | `interface sr\|cs\|mode\|nv\|param Name [queued] { ... }`; `queued` for sr events (Rte_Send / Rte_Receive) |
 | Sender-receiver / NV / parameter member | `Value: uint16`, arrays `Value: uint16[4]` |
 | Client-server operation | `GetValue(in id: uint16, out value: uint32): Std_ReturnType` |
 | Mode group | `modes STARTUP, RUN, SHUTDOWN` |
 | Software component | `swc application\|sensorActuator\|service\|ecuAbstraction\|complexDriver\|parameter Name { ... }` |
 | BSW module | `bsw Name layer services\|ecual\|mcal\|cdd [uses A, B] [{ ... }]` |
-| Port | `pport Name : Interface`, `rport ...`, `prport ...` |
+| Port | `pport Name : Interface [e2e]`, `rport ...`, `prport ...`; `e2e` for end-to-end protection |
 | Runnable | `runnable Name <triggers> <accesses>` |
 | Triggers | `every 10ms`, `on init`, `on data Port`, `on call Port`, `on mode Port` |
-| Accesses | `reads A, B`, `writes P`, `calls Client`, `switches ModePort`, `enters Ea` |
+| Error and completion events | `on data error P` (DataReceiveError), `on mode error P`, `on transformer error P`, `on sent P` (DataSendCompleted), `on written P` (DataWriteCompleted), `on result P` (async call returns), `on switched P` (ModeSwitchedAck) |
+| Accesses | `reads A, B`, `writes P`, `implicit reads A`, `implicit writes P`, `calls Client`, `switches ModePort`, `enters Ea` |
 | Exclusive area | `exclusive Ea` in an SWC or BSW module (`Rte_Enter` / `SchM_Enter`) |
 | Composition | `composition Name { ports, prototypes, connectors }` |
 | Prototype | `prototype Type` (named like the type) or `prototype name: Type` |
@@ -68,7 +69,8 @@ Task clauses come in any order and may span lines, like the clauses of a runnabl
 - Connected ports use the same interface; a client port connects to one server only.
 - Unconnected R-ports of prototypes are warnings.
 - Runnable accesses fit the port: `reads` a required sr/nv/param port, `writes` a provided sr/nv port, `calls` a required cs port, `switches` a provided mode port; same for the triggers.
-- Interface members fit the interface kind.
+- `implicit` only for reads and writes of unqueued sr/nv data; `on written` needs an implicit write of the port; `on data error` a required sr/nv port, `on sent` a provided one, `on result` a required cs port, `on switched` and `on mode error` a provided mode port, `on transformer error` an `e2e` port or a provided cs port.
+- Interface members fit the interface kind; only sr interfaces are `queued`; `e2e` on sr and cs ports only.
 - BSW layering: an upward `uses` (e.g. MCAL → services) is a warning; services using an MCAL driver directly is a hint. Complex drivers may use any layer.
 - OS profile: AUTOSAR/OSEK have resources, no mutexes and no semaphores, and an event belongs to one task. A `resource` (priority ceiling) is available in every profile, e.g. for the AUTOSAR OS API emulated on ThreadX with preemption-threshold; mutexes use priority inheritance or none.
 - OS objects: `locks` needs a resource or mutex, `takes`/`gives` a semaphore, `sends`/`receives` a queue, `waits`/`sets` an event. Unused objects, queues without sender or receiver, events nobody sets or nobody waits for, and semaphores that are taken but never given are warnings.
@@ -92,7 +94,7 @@ Port symbols: triangle = sender-receiver (points in the data direction), filled 
 ## VS Code
 
 - Syntax highlighting, diagnostics, completion, go to definition, find references, rename.
-- **ARDL: Open Diagram Preview to the Side** (`Cmd+K V`, or the preview icon in the editor title). The preview follows the active `.ardl` editor, refreshes as you type, has a tab per view, zoom (buttons, pinch or Cmd/Ctrl + wheel), drag to pan, and **Export SVG** for the current view. It uses the editor's light or dark theme.
+- **ARDL: Open Diagram Preview to the Side** (`Cmd+K V`, the preview icon in the editor title, or right-click in the editor, on the editor tab or on an `.ardl` file in the explorer, like Markdown's preview; **Export Diagrams as SVG** is in the same menus). The preview follows the active `.ardl` editor, refreshes as you type, has a tab per view, zoom (buttons, pinch or Cmd/Ctrl + wheel), drag to pan, and **Export SVG** for the current view. It uses the editor's light or dark theme.
 - **ARDL: Export Diagrams as SVG** writes one `<file>.<view>.svg` per view next to the `.ardl` file.
 
 ## Command line
@@ -117,7 +119,7 @@ npm run package          # ardl-<version>.vsix
 code --install-extension ardl-0.2.0.vsix --force
 ```
 
-`test:e2e` downloads VS Code into `.vscode-test/` on the first run, opens a copy of `examples/` and checks activation, diagnostics, go to definition, completion, the preview and SVG export. `ARDL_VSCODE_VERSION=1.91.0 npm run test:e2e` runs it against the minimum version in `engines`.
+`test:e2e` downloads VS Code into `.vscode-test/` on the first run, opens a copy of `examples/` and checks activation, diagnostics, go to definition, completion, the preview, the context menu entries and SVG export. `ARDL_VSCODE_VERSION=1.91.0 npm run test:e2e` runs it against the minimum version in `engines`.
 
 ### Publishing
 

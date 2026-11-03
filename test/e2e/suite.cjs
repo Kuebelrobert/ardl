@@ -67,6 +67,13 @@ async function run() {
     await waitFor('preview panel', () => vscode.window.tabGroups.all.flatMap(g => g.tabs).some(t => t.input instanceof vscode.TabInputWebview));
     console.log('ok   preview opened');
 
+    // The preview is also in the editor and explorer context menus, like Markdown's.
+    const menus = vscode.extensions.all.find(e => e.packageJSON.name === 'ardl').packageJSON.contributes.menus;
+    for (const menu of ['editor/context', 'explorer/context', 'editor/title/context']) {
+        assert.ok(menus[menu].some(m => m.command === 'ardl.openPreview'), `${menu} has the preview`);
+    }
+    console.log('ok   preview in context menus');
+
     // Export writes the OS view next to the file.
     await vscode.commands.executeCommand('ardl.exportSvg', os.uri);
     const svg = fs.readFileSync(path.join(folder.fsPath, 'light-control-os.BodyTasks.svg'), 'utf8');

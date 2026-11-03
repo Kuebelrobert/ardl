@@ -188,6 +188,83 @@ bsw Drv layer cdd uses Det`);
     });
 });
 
+describe('rte semantics', () => {
+    const IFACES = `
+interface sr Speed { Value: uint16 }
+interface sr Dtc queued { Ev: uint32 }
+interface param Prm { P: uint16 }
+interface cs Calib { Get(out v: uint32): Std_ReturnType }
+interface mode Pm { modes A, B }
+`;
+
+    test('a component with every RTE event and implicit access is valid', async () => {
+        expect(await diagnostics(IFACES + `
+swc application S {
+    rport RpSpeed : Speed e2e
+    pport PpSpeed : Speed
+    pport PpBus   : Speed
+    rport RpDtc   : Dtc
+    pport PpDtc   : Dtc
+    rport RpCalib : Calib
+    pport PpCalib : Calib e2e
+    pport PpMode  : Pm
+    runnable R_Ctrl every 10ms implicit reads RpSpeed implicit writes PpSpeed writes PpBus, PpDtc calls RpCalib switches PpMode
+    runnable R_Rx on data RpDtc reads RpDtc
+    runnable R_Timeout on data error RpSpeed
+    runnable R_Sent on sent PpBus
+    runnable R_Written on written PpSpeed
+    runnable R_Result on result RpCalib
+    runnable R_Ack on switched PpMode
+    runnable R_ModeErr on mode error PpMode
+    runnable R_Trafo on transformer error RpSpeed
+    runnable R_Serve on call PpCalib
+}`)).toEqual([]);
+    });
+
+    test('events, implicit access, queued and e2e need the right port', async () => {
+        const result = await diagnostics(IFACES + `
+interface cs Q queued { Op(): Std_ReturnType }
+swc application S {
+    rport RpSpeed : Speed
+    rport RpDtc   : Dtc
+    rport RpPrm   : Prm
+    pport PpSpeed : Speed
+    pport PpMode  : Pm e2e
+    rport RpCalib : Calib
+    runnable R1 every 10ms implicit reads RpDtc, RpPrm implicit calls RpCalib writes PpSpeed
+    runnable R2 on data error PpSpeed
+    runnable R3 on written PpSpeed
+    runnable R4 on result PpSpeed
+    runnable R5 on transformer error RpSpeed
+}`);
+        expect(result).toEqual(expect.arrayContaining([
+            "error: Only sender-receiver interfaces can be 'queued'.",
+            "error: E2E protection needs a sender-receiver or client-server port; 'PpMode' is a pport of a 'mode' interface.",
+            "error: 'implicit reads' needs unqueued sr/nv data; 'RpDtc' is queued.",
+            "error: 'implicit reads' needs unqueued sr/nv data; 'RpPrm' is a parameter port (Rte_Prm).",
+            "error: Only reads and writes can be 'implicit'.",
+            "error: 'on data error' needs a required sr/nv port; 'PpSpeed' is a pport of a 'sr' interface.",
+            "warning: 'on written' follows an implicit write, but no runnable of 'S' has 'implicit writes PpSpeed'.",
+            "error: 'on result' needs a required cs port; 'PpSpeed' is a pport of a 'sr' interface.",
+            "error: 'on transformer error' needs an 'e2e' port or a provided cs port; 'RpSpeed' is a rport of a 'sr' interface."
+        ]));
+    });
+
+    test('component view shows the events, implicit access and E2E', async () => {
+        const [view] = await render(IFACES + `
+swc application S {
+    rport RpSpeed : Speed e2e
+    runnable R every 10ms implicit reads RpSpeed
+    runnable R_Timeout on data error RpSpeed
+}`);
+        expect(view.svg).not.toContain('layout failed');
+        expect(view.svg).toContain('RpSpeed · E2E');
+        expect(view.svg).toContain('every 10ms, implicit');
+        expect(view.svg).toContain('on data error');
+        expect(view.svg).toContain('<title>R_Timeout event RpSpeed');
+    });
+});
+
 describe('os', () => {
     /** Two SWCs with periodic, init and server runnables to map. */
     const SWCS = BASE + `

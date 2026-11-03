@@ -2,7 +2,7 @@
   "name": "ardl",
   "displayName": "ARDL – AUTOSAR Design Language",
   "description": "Lightweight design-as-code for AUTOSAR ASW and BSW, with live diagram preview",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "publisher": "kuebelrobert",
   "license": "MIT",
   "icon": "media/logo.png",
@@ -68,12 +68,14 @@
     "commands": [
       {
         "command": "ardl.openPreview",
-        "title": "ARDL: Open Diagram Preview to the Side",
+        "title": "Open Diagram Preview to the Side",
+        "category": "ARDL",
         "icon": "$(open-preview)"
       },
       {
         "command": "ardl.exportSvg",
-        "title": "ARDL: Export Diagrams as SVG"
+        "title": "Export Diagrams as SVG",
+        "category": "ARDL"
       }
     ],
     "menus": {
@@ -82,6 +84,47 @@
           "command": "ardl.openPreview",
           "when": "editorLangId == ardl",
           "group": "navigation"
+        }
+      ],
+      "editor/title/context": [
+        {
+          "command": "ardl.openPreview",
+          "when": "resourceLangId == ardl",
+          "group": "1_open"
+        }
+      ],
+      "editor/context": [
+        {
+          "command": "ardl.openPreview",
+          "when": "editorLangId == ardl",
+          "group": "navigation"
+        },
+        {
+          "command": "ardl.exportSvg",
+          "when": "editorLangId == ardl",
+          "group": "navigation"
+        }
+      ],
+      "explorer/context": [
+        {
+          "command": "ardl.openPreview",
+          "when": "resourceLangId == ardl",
+          "group": "navigation"
+        },
+        {
+          "command": "ardl.exportSvg",
+          "when": "resourceLangId == ardl",
+          "group": "navigation"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "ardl.openPreview",
+          "when": "editorLangId == ardl"
+        },
+        {
+          "command": "ardl.exportSvg",
+          "when": "editorLangId == ardl"
         }
       ]
     },
