@@ -6,12 +6,16 @@
  * triggers, and connected to the ports they use. The arrows show the direction
  * of data or calls: a runnable that reads a port gets an arrow from the port,
  * a runnable that calls a client port gets an arrow towards the port.
+ * Exclusive areas are hexagons inside the box, the lock symbol of the OS view,
+ * with a dashed line from every runnable that enters them.
  *
  * Shape ids used in the ELK graph:
  * - `comp`              the component box,
  * - `port:<port>`       a port of the component,
  * - `r:<runnable>`      a runnable,
- * - `u:<runnable>:<port>` the use of a port by a runnable.
+ * - `u:<runnable>:<port>` the use of a port by a runnable,
+ * - `ea:<area>`         an exclusive area,
+ * - `x:<runnable>:<area>` a runnable entering an exclusive area.
  */
 import type { ElkExtendedEdge, ElkNode } from 'elkjs/lib/elk-api.js';
 import { isDataTrigger, isInitTrigger, isModeTrigger, isOperationTrigger, isTimingTrigger, type Bsw, type Port, type Runnable, type Swc } from '../language/generated/ast.js';
@@ -57,6 +61,14 @@ export async function renderComponent(component: Swc | Bsw, title: string): Prom
         const fromPort = u.port.direction === 'rport';
         return { id: u.id, sources: [fromPort ? port : run], targets: [fromPort ? run : port] };
     });
+    const areaNodes: ElkNode[] = component.exclusiveAreas.map(area => ({
+        id: `ea:${area.name}`,
+        width: Math.max(textWidth(area.name, 13), textWidth('exclusive area', 11)) + 40,
+        height: 40
+    }));
+    const enters = component.runnables.flatMap(run => [...new Set(run.enters.flatMap(e => e.ref ? [e.ref.name] : []))]
+        .map(area => ({ id: `x:${run.name}:${area}`, run: run.name, area })));
+    edges.push(...enters.map(e => ({ id: e.id, sources: [`r:${e.run}`], targets: [`ea:${e.area}`] })));
 
     const rows = Math.max(component.ports.filter(p => p.direction === 'rport').length, component.ports.filter(p => p.direction !== 'rport').length);
     const graph: ElkNode = {
@@ -70,7 +82,7 @@ export async function renderComponent(component: Swc | Bsw, title: string): Prom
         },
         children: [{
             id: 'comp',
-            children: runnableNodes,
+            children: [...runnableNodes, ...areaNodes],
             edges,
             ports: component.ports.map(port => elkPort(`port:${port.name}`, port)),
             layoutOptions: {
@@ -108,6 +120,23 @@ export async function renderComponent(component: Swc | Bsw, title: string): Prom
             + `<rect x="${r(n.x)}" y="${r(n.y)}" width="${r(n.width)}" height="${r(n.height)}" rx="12" class="runnable"/>`
             + text(rx, (n.y ?? 0) + 17, run.name, 'name', 'middle')
             + text(rx, (n.y ?? 0) + 32, triggerText(run), 'muted', 'middle')
+            + '</g>');
+    }
+
+    for (const e of enters) {
+        const edge = laid.edges.get(e.id);
+        if (edge) parts.push(edgeSvg(edge, 'os-mutex', 'none', `${e.run} enters ${e.area}`));
+    }
+    for (const area of component.exclusiveAreas) {
+        const n = laid.nodes.get(`ea:${area.name}`)!;
+        const x = n.x ?? 0;
+        const y = n.y ?? 0;
+        const w = n.width ?? 0;
+        const h = n.height ?? 0;
+        parts.push(`<g class="node"><title>${esc(`exclusive area ${area.name}`)}</title>`
+            + `<path d="M${r(x + 10)} ${r(y)} L${r(x + w - 10)} ${r(y)} L${r(x + w)} ${r(y + h / 2)} L${r(x + w - 10)} ${r(y + h)} L${r(x + 10)} ${r(y + h)} L${r(x)} ${r(y + h / 2)} Z" class="os-object os-mutex"/>`
+            + text(x + w / 2, y + 17, area.name, 'name', 'middle')
+            + text(x + w / 2, y + 32, 'exclusive area', 'muted', 'middle')
             + '</g>');
     }
 

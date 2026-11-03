@@ -10,7 +10,7 @@
     },
     {
       "name": "keyword.control.ardl",
-      "match": "\\b(ecuAbstraction|sensorActuator|complexDriver|application|composition|component|interface|parameter|prototype|semaphore|protocol|receives|runnable|services|switches|connect|profile|service|startup|layers|prport|writes|calls|count|depth|ecual|event|every|gives|inout|layer|locks|modes|mutex|param|pport|queue|reads|rport|sends|takes|title|waits|call|core|data|init|mcal|mode|prio|runs|sets|task|uses|view|bsw|cat|cdd|isr|out|swc|cs|in|nv|of|on|os|sr)\\b"
+      "match": "\\b(ecuAbstraction|sensorActuator|complexDriver|application|composition|component|exclusive|interface|parameter|prototype|semaphore|protocol|receives|resource|runnable|services|switches|connect|profile|service|startup|enters|layers|prport|writes|calls|count|depth|ecual|event|every|gives|inout|layer|locks|modes|mutex|param|pport|queue|reads|rport|sends|takes|title|waits|call|core|data|init|mcal|mode|prio|runs|sets|task|uses|view|bsw|cat|cdd|isr|out|swc|cs|in|nv|of|on|os|sr)\\b"
     },
     {
       "name": "string.quoted.double.ardl",

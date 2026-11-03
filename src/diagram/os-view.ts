@@ -1,13 +1,13 @@
 /**
- * OS view: tasks and ISRs of one `os` with the objects they share.
+ * OS view: tasks and ISRs of one OS, from all its parts, with the objects they share.
  *
  * Tasks and ISRs are boxes with their scheduling attributes and the runnables
- * mapped to them. OS objects get a shape of their own: a hexagon for a mutex,
+ * mapped to them. OS objects get a shape of their own: a hexagon for a resource or mutex,
  * a pill for a semaphore, a box with slots for a queue and a flag for an event.
  * Edges follow the flow of data or signals, so ELK puts producers left of an
  * object and consumers right of it: `sends` and `receives` run through a queue,
  * `sets` and `waits` through an event, `gives` and `takes` through a semaphore.
- * `locks` is a plain line from the task to the mutex.
+ * `locks` is a dashed line from the task to the resource or mutex.
  *
  * Large ECUs map hundreds of runnables to a handful of tasks, so a task box
  * lists only the first few and the hover tooltip has the full list.
@@ -16,8 +16,8 @@
  * `e:<user>:<access>:<object>`.
  */
 import type { ElkExtendedEdge, ElkNode } from 'elkjs/lib/elk-api.js';
-import type { Isr, Os, OsAccessKind, OsObject, Task } from '../language/generated/ast.js';
-import { mutexProtocol } from '../language/ardl-semantics.js';
+import type { Isr, OsAccessKind, OsObject, Task } from '../language/generated/ast.js';
+import { mutexProtocol, type MergedOs } from '../language/ardl-semantics.js';
 import { BASE_OPTIONS, layout } from './layout.js';
 import { edgeSvg, esc, r, svgDocument, text, textWidth } from './svg.js';
 
@@ -42,7 +42,7 @@ interface UseEdge {
 const CONSUMES: readonly OsAccessKind[] = ['receives', 'waits', 'takes'];
 
 /** Renders the OS view as a standalone SVG document. */
-export async function renderOs(os: Os, title: string): Promise<string> {
+export async function renderOs(os: MergedOs, title: string): Promise<string> {
     const users: Array<Task | Isr> = [...os.tasks, ...os.isrs];
     const uses = collectUses(users);
     const objectNames = new Set(os.objects.map(o => o.name));
@@ -83,7 +83,7 @@ export async function renderOs(os: Os, title: string): Promise<string> {
         const edge = laid.edges.get(u.id);
         if (edge) {
             // Locks have no direction; every other edge points along the flow.
-            parts.push(edgeSvg(edge, `os-${u.object.$type.toLowerCase()}`, u.kind === 'locks' ? 'none' : 'end', `${u.user.name} ${u.kind} ${u.object.name}`));
+            parts.push(edgeSvg(edge, `os-${objectClass(u.object)}`, u.kind === 'locks' ? 'none' : 'end', `${u.user.name} ${u.kind} ${u.object.name}`));
         }
     }
     for (const o of os.objects) {
@@ -154,6 +154,7 @@ function renderUser(n: ElkNode, u: Task | Isr): string {
 /** Second line of an object shape: protocol, count or queue type and depth. */
 function objectDetail(o: OsObject): string {
     switch (o.$type) {
+        case 'Resource': return 'resource · ceiling';
         case 'Mutex': return `mutex · ${mutexProtocol(o)}`;
         case 'Semaphore': return `semaphore${o.count !== undefined ? ` · ${o.count}` : ''}`;
         case 'Queue': return ['queue', o.type, o.depth !== undefined ? `depth ${o.depth}` : undefined].filter(Boolean).join(' · ');
@@ -161,10 +162,16 @@ function objectDetail(o: OsObject): string {
     }
 }
 
+/** CSS class suffix of an object: resources look like mutexes, both are locks. */
+function objectClass(o: OsObject): string {
+    return o.$type === 'Resource' ? 'mutex' : o.$type.toLowerCase();
+}
+
 /** The outline of an object: hexagon, pill, box with slots or flag, depending on the kind. */
 function objectShape(o: OsObject, x: number, y: number, w: number, h: number): string {
-    const cls = `os-object os-${o.$type.toLowerCase()}`;
+    const cls = `os-object os-${objectClass(o)}`;
     switch (o.$type) {
+        case 'Resource':
         case 'Mutex': {
             const c = 10;
             return `<path d="M${r(x + c)} ${r(y)} L${r(x + w - c)} ${r(y)} L${r(x + w)} ${r(y + h / 2)} L${r(x + w - c)} ${r(y + h)} L${r(x + c)} ${r(y + h)} L${r(x)} ${r(y + h / 2)} Z" class="${cls}"/>`;
@@ -195,7 +202,7 @@ function renderObject(n: ElkNode, o: OsObject): string {
 
 /** One-line legend of the object shapes. */
 function osLegend(x: number, y: number): { svg: string; height: number } {
-    const items: Array<[OsObject['$type'], string]> = [['Mutex', 'Mutex'], ['Semaphore', 'Semaphore'], ['Queue', 'Queue'], ['Event', 'Event']];
+    const items: Array<[OsObject['$type'], string]> = [['Mutex', 'Resource / mutex'], ['Semaphore', 'Semaphore'], ['Queue', 'Queue'], ['Event', 'Event']];
     let cx = x;
     const parts = items.map(([type, label]) => {
         const shape = objectShape({ $type: type } as OsObject, cx, y, 34, 14);

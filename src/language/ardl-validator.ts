@@ -14,20 +14,24 @@
  * - BSW modules follow the layered architecture,
  * - OS objects fit the profile, are used consistently, are locked in one
  *   order, and every runnable of a mapped component is mapped exactly once.
+ *   An OS may be split into several `os` blocks of the same name; the OS
+ *   checks see all parts, and each part reports what lies inside it.
  *
  * Severity convention: `error` for models that cannot be correct, `warning`
  * for models that are probably incomplete, `info` for things that are legal
  * but worth a second look.
  */
-import { AstUtils, type AstNode, type IndexManager, type ValidationAcceptor, type ValidationChecks } from 'langium';
+import { AstUtils, type AstNode, type IndexManager, type LangiumDocuments, type ValidationAcceptor, type ValidationChecks } from 'langium';
 import {
     isComposition,
     isDataElement,
     isDataTrigger,
     isModeGroup,
     isModeTrigger,
+    isMutex,
     isOperation,
     isOperationTrigger,
+    isOs,
     isPrototype,
     isTimingTrigger,
     isView,
@@ -60,8 +64,10 @@ import {
     isProvided,
     isRequired,
     isUpwardDependency,
+    mergeOs,
     mutexProtocol,
-    skipsEcuAbstraction
+    skipsEcuAbstraction,
+    type MergedOs
 } from './ardl-semantics.js';
 
 /**
@@ -89,9 +95,17 @@ export class ArdlValidator {
 
     /** Index of all exported (top-level) symbols of the workspace, used for cross-file duplicate checks. */
     private readonly indexManager: IndexManager;
+    /** All documents of the workspace, to collect the parts of an OS. */
+    private readonly documents: LangiumDocuments;
 
     constructor(services: ArdlServices) {
         this.indexManager = services.shared.workspace.IndexManager;
+        this.documents = services.shared.workspace.LangiumDocuments;
+    }
+
+    /** The OS that `os` is a part of, merged from all files. */
+    private merged(os: Os): MergedOs {
+        return mergeOs(os.name, this.documents.all.map(d => d.parseResult.value as Model));
     }
 
     /**
@@ -101,9 +115,10 @@ export class ArdlValidator {
      *
      * Views live in a namespace of their own: `view Body composition Body`
      * is fine because a view is never the target of a model reference.
+     * OS blocks are not checked: blocks with the same name are parts of one OS.
      */
     checkUniqueElementNames(model: Model, accept: ValidationAcceptor): void {
-        reportDuplicates(model.elements.filter(e => !isView(e)), 'Element', accept);
+        reportDuplicates(model.elements.filter(e => !isView(e) && !isOs(e)), 'Element', accept);
         reportDuplicates(model.elements.filter(isView), 'View', accept);
 
         // Collect the names declared in every other document, keyed by namespace.
@@ -111,11 +126,11 @@ export class ArdlValidator {
         const namespace = (type: string) => type.endsWith('View') ? 'view' : 'element';
         const elsewhere = new Map<string, string>();
         for (const d of this.indexManager.allElements()) {
-            if (d.documentUri.toString() !== uri) {
+            if (d.documentUri.toString() !== uri && d.type !== 'Os') {
                 elsewhere.set(`${namespace(d.type)}:${d.name}`, d.documentUri.path.split('/').pop() ?? '');
             }
         }
-        for (const element of model.elements) {
+        for (const element of model.elements.filter(e => !isOs(e))) {
             const other = elsewhere.get(`${namespace(element.$type)}:${element.name}`);
             if (other) {
                 accept('error', `'${element.name}' is already declared in ${other}. Names are global across all .ardl files.`,
@@ -149,12 +164,17 @@ export class ArdlValidator {
         reportDuplicates(iface.members.flatMap<AstNode & { name?: string }>(m => isModeGroup(m) ? m.modes : [m]), 'Member', accept);
     }
 
-    /** Port and runnable names must be unique within their component. */
+    /** Port, runnable and exclusive area names are unique within their component; every exclusive area is entered. */
     checkComponentMembers(component: Component, accept: ValidationAcceptor): void {
         reportDuplicates(component.ports, 'Port', accept);
         // Compositions have no runnables.
         if ('runnables' in component) {
             reportDuplicates(component.runnables, 'Runnable', accept);
+            reportDuplicates(component.exclusiveAreas, 'Exclusive area', accept);
+            const entered = new Set(component.runnables.flatMap(r => r.enters.map(e => e.ref)));
+            for (const area of component.exclusiveAreas.filter(a => !entered.has(a))) {
+                accept('warning', `Exclusive area '${area.name}' is not entered by any runnable.`, { node: area, property: 'name' });
+            }
         }
     }
 
@@ -336,22 +356,32 @@ export class ArdlValidator {
     }
 
     /**
-     * Checks of one `os` block that need all of its tasks, ISRs and objects at
-     * once. All of them are linear in the size of the block (plus the
-     * runnables of the mapped components), so they stay cheap for large ECUs.
+     * Checks that need all tasks, ISRs and objects of an OS at once. They run
+     * on the merged OS, but each part only reports the problems inside itself,
+     * so a problem shows up once, in the file it is in. All checks are linear
+     * in the size of the OS (plus the runnables of the mapped components), so
+     * they stay cheap for large ECUs.
      */
     checkOs(os: Os, accept: ValidationAcceptor): void {
+        const merged = this.merged(os);
         if (os.profile && !(OS_PROFILES as readonly string[]).includes(os.profile)) {
             accept('error', `Unknown OS profile '${os.profile}'. Use one of: ${OS_PROFILES.join(', ')}.`, { node: os, property: 'profile' });
+        } else if (os.profile && merged.profile !== os.profile) {
+            accept('error', `OS '${os.name}' already has profile '${merged.profile}' in another part.`, { node: os, property: 'profile' });
         }
-        reportDuplicates([...os.tasks, ...os.isrs, ...os.objects], 'OS element', accept);
-        this.checkOsObjects(os, accept);
-        this.checkLockOrder(os, accept);
-        this.checkRunnableMapping(os, accept);
+        const here: ValidationAcceptor = (severity, message, info) => {
+            if (AstUtils.getContainerOfType(info.node, isOs) === os) {
+                accept(severity, message, info);
+            }
+        };
+        reportDuplicates([...merged.tasks, ...merged.isrs, ...merged.objects], 'OS element', here);
+        this.checkOsObjects(merged, here);
+        this.checkLockOrder(merged, here);
+        this.checkRunnableMapping(merged, here);
     }
 
     /** Profile rules per object, and whether every object is used the way its kind needs. */
-    private checkOsObjects(os: Os, accept: ValidationAcceptor): void {
+    private checkOsObjects(os: MergedOs, accept: ValidationAcceptor): void {
         // Who uses each object, and how.
         const users = new Map<OsObject, Array<{ user: Task | Isr; kind: OsAccessKind }>>();
         for (const user of [...os.tasks, ...os.isrs]) {
@@ -363,8 +393,7 @@ export class ArdlValidator {
                 }
             }
         }
-        const osek = isOsekLike(os);
-        const rtos = os.profile === 'threadx' || os.profile === 'freertos';
+        const osek = isOsekLike(os.profile);
         for (const object of os.objects) {
             const uses = users.get(object) ?? [];
             const has = (kind: OsAccessKind) => uses.some(u => u.kind === kind);
@@ -376,22 +405,21 @@ export class ArdlValidator {
             switch (object.$type) {
                 case 'Mutex': {
                     const protocol = mutexProtocol(object);
-                    if (!(MUTEX_PROTOCOLS as readonly string[]).includes(protocol)) {
-                        accept('error', `Unknown protocol '${protocol}'. Use one of: ${MUTEX_PROTOCOLS.join(', ')}.`, { node: object, property: 'protocol' });
-                    } else if (osek && protocol !== 'ceiling') {
-                        accept('error', `${os.profile} resources use the priority ceiling protocol; '${protocol}' is not available.`, { node: object, property: 'protocol' });
-                    } else if (rtos && protocol === 'ceiling') {
-                        accept('warning', `${os.profile} mutexes support priority inheritance, not priority ceiling.`, { node: object, property: 'protocol' });
+                    if (osek) {
+                        accept('error', `${os.profile} has no mutexes. Use a resource (priority ceiling).`, at);
+                    } else if (!(MUTEX_PROTOCOLS as readonly string[]).includes(protocol)) {
+                        const hint = protocol === 'ceiling' ? " For priority ceiling declare a 'resource'." : '';
+                        accept('error', `Unknown protocol '${protocol}'. Use one of: ${MUTEX_PROTOCOLS.join(', ')}.${hint}`, { node: object, property: 'protocol' });
                     }
                     const priorities = new Set(uses.map(u => u.user.priority));
                     if (protocol === 'none' && priorities.size > 1) {
-                        accept('warning', `'${object.name}' is shared by tasks of different priority without a protocol: priority inversion. Use 'protocol inherit' or 'protocol ceiling'.`, at);
+                        accept('warning', `'${object.name}' is shared by tasks of different priority without a protocol: priority inversion. Use 'protocol inherit' or a resource.`, at);
                     }
                     break;
                 }
                 case 'Semaphore':
                     if (osek) {
-                        accept('error', `${os.profile} has no semaphores. Use an event for signalling or a mutex (resource) for mutual exclusion.`, at);
+                        accept('error', `${os.profile} has no semaphores. Use an event for signalling or a resource for mutual exclusion.`, at);
                     } else if (has('takes') && !has('gives') && !object.count) {
                         accept('warning', `'${object.name}' is taken but never given and has no initial count: ${names('takes').join(', ')} block forever.`, at);
                     }
@@ -423,7 +451,7 @@ export class ArdlValidator {
      * builds the graph of these orders and warns at every order that lies on a
      * cycle.
      */
-    private checkLockOrder(os: Os, accept: ValidationAcceptor): void {
+    private checkLockOrder(os: MergedOs, accept: ValidationAcceptor): void {
         const after = new Map<string, Set<string>>();
         const orders: Array<{ access: OsAccess; from: string; to: string; index: number }> = [];
         for (const user of [...os.tasks, ...os.isrs]) {
@@ -464,9 +492,10 @@ export class ArdlValidator {
      * (`on call` only), which run in the caller's context. Components without
      * any mapping are not reported: they may belong to another ECU.
      * A periodic runnable in a periodic task needs a period that is a multiple
-     * of the task's period.
+     * of the task's period. An exclusive area whose runnables all run in one
+     * task needs no lock, as the RTE would optimize it away.
      */
-    private checkRunnableMapping(os: Os, accept: ValidationAcceptor): void {
+    private checkRunnableMapping(os: MergedOs, accept: ValidationAcceptor): void {
         const mappedTo = new Map<Runnable, Task>();
         const firstRef = new Map<RunnableOwner, RunnableRef>();
         for (const task of os.tasks) {
@@ -496,13 +525,21 @@ export class ArdlValidator {
             if (missing.length) {
                 accept('warning', `Runnables of '${owner.name}' not mapped to a task: ${missing.map(r => r.name).join(', ')}.`, { node: ref, property: 'component' });
             }
+            for (const area of owner.exclusiveAreas) {
+                const users = owner.runnables.filter(r => r.enters.some(e => e.ref === area));
+                const tasks = new Set(users.map(r => mappedTo.get(r)));
+                const [task] = tasks;
+                if (users.length && tasks.size === 1 && task) {
+                    accept('info', `Exclusive area '${owner.name}.${area.name}' is only entered from '${task.name}' and needs no lock.`, { node: ref, property: 'component' });
+                }
+            }
         }
     }
 
     /**
      * ISRs: category 1 ISRs bypass the OS and must not use OS objects, and no
-     * ISR may block. AUTOSAR/OSEK allow category 2 ISRs to take resources;
-     * RTOS mutexes cannot be locked from interrupt context.
+     * ISR may block. Category 2 ISRs may take resources (the ceiling then
+     * masks interrupts); mutexes cannot be locked from interrupt context.
      */
     checkIsr(isr: Isr, accept: ValidationAcceptor): void {
         if (isr.cat !== undefined && isr.cat !== 1 && isr.cat !== 2) {
@@ -513,19 +550,19 @@ export class ArdlValidator {
                 accept('error', `A category 1 ISR must not use OS objects; make '${isr.name}' 'cat 2'.`, { node: access, property: 'kind' });
             } else if (BLOCKING_ACCESSES.includes(access.kind)) {
                 accept('error', `An ISR must not block: '${access.kind}' can wait.`, { node: access, property: 'kind' });
-            } else if (access.kind === 'locks' && !isOsekLike(isr.$container)) {
-                accept('error', `Mutexes cannot be locked from an ISR in ${isr.$container.profile ?? 'a generic'} OS.`, { node: access, property: 'kind' });
+            } else if (access.objects.some(o => isMutex(o.ref))) {
+                accept('error', 'Mutexes cannot be locked from an ISR. Use a resource.', { node: access, property: 'kind' });
             }
         });
     }
 
-    /** `locks` needs a mutex, `takes`/`gives` a semaphore, `sends`/`receives` a queue, `waits`/`sets` an event. */
+    /** `locks` needs a resource or mutex, `takes`/`gives` a semaphore, `sends`/`receives` a queue, `waits`/`sets` an event. */
     checkOsAccess(access: OsAccess, accept: ValidationAcceptor): void {
         const expected = ACCESS_TARGET[access.kind];
         access.objects.forEach((ref, index) => {
             const object = ref.ref;
-            if (object && object.$type !== expected) {
-                accept('error', `'${access.kind}' needs a ${expected.toLowerCase()}; '${object.name}' is a ${object.$type.toLowerCase()}.`,
+            if (object && !expected.includes(object.$type)) {
+                accept('error', `'${access.kind}' needs a ${expected.map(t => t.toLowerCase()).join(' or ')}; '${object.name}' is a ${object.$type.toLowerCase()}.`,
                     { node: access, property: 'objects', index });
             }
         });

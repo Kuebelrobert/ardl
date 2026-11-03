@@ -88,9 +88,14 @@ Bsw:
 BswLayer returns string:
     'services' | 'ecual' | 'mcal' | 'cdd';
 
-// Ports and runnables in any order.
+// Ports, runnables and exclusive areas in any order.
 fragment ComponentBody:
-    '{' (ports+=Port | runnables+=Runnable)* '}';
+    '{' (ports+=Port | runnables+=Runnable | exclusiveAreas+=ExclusiveArea)* '}';
+
+// Data of the component that several runnables share: `exclusive EaFilter`
+// (Rte_Enter / SchM_Enter). Runnables that use it say `enters EaFilter`.
+ExclusiveArea:
+    'exclusive' name=Name;
 
 // `pport PpLamp : LampState`. P = provided, R = required, PR = both.
 Port:
@@ -102,7 +107,11 @@ PortDirection returns string:
 // `runnable R_Control every 10ms reads RpSpeed writes PpLamp`.
 // Triggers (RTE events) and accesses (RTE API calls) can be mixed freely.
 Runnable:
-    'runnable' name=Name (triggers+=Trigger | accesses+=Access)*;
+    'runnable' name=Name (
+        triggers+=Trigger
+        | accesses+=Access
+        | 'enters' enters+=[ExclusiveArea:Name] (',' enters+=[ExclusiveArea:Name])*
+    )*;
 
 Trigger:
     TimingTrigger | InitTrigger | DataTrigger | OperationTrigger | ModeTrigger;
@@ -157,10 +166,12 @@ PortRef:
 
 // ---------------------------------------------------------------- operating system
 
-// The OS of an ECU: tasks, ISRs and the objects they synchronize and
+// The OS of an ECU or core: tasks, ISRs and the objects they synchronize and
 // communicate through. The profile (`autosar`, `osek`, `threadx`, `freertos`,
 // `generic`) is a plain identifier; the validator says which objects and
-// protocols a profile supports. Names inside an `os` block are local to it.
+// protocols a profile supports. Several `os` blocks with the same name, in one
+// file or in several, are parts of one OS: e.g. application tasks in one file
+// and supervision in another. Names inside an OS are local to its parts.
 Os:
     'os' name=ID ('profile' profile=ID)? '{' (tasks+=Task | isrs+=Isr | objects+=OsObject)* '}';
 
@@ -200,10 +211,14 @@ OsAccessKind returns string:
     'locks' | 'takes' | 'gives' | 'sends' | 'receives' | 'waits' | 'sets';
 
 OsObject:
-    Mutex | Semaphore | Queue | Event;
+    Resource | Mutex | Semaphore | Queue | Event;
 
-// `protocol inherit | ceiling | none`; without it the profile's default
-// (ceiling for autosar/osek, inherit otherwise).
+// Lock with the immediate priority ceiling protocol: an AUTOSAR/OSEK resource,
+// or its emulation on an RTOS (ThreadX preemption-threshold).
+Resource:
+    'resource' name=ID;
+
+// RTOS mutex: `protocol inherit | none`, default inherit.
 Mutex:
     'mutex' name=ID ('protocol' protocol=ID)?;
 
@@ -246,7 +261,8 @@ OsView:
 // reuse soft keywords, so a data element can be called `data` or `mode`.
 Name returns string:
     ID | 'data' | 'init' | 'call' | 'mode' | 'modes' | 'layer' | 'title' | 'in' | 'out' | 'inout'
-    | 'core' | 'count' | 'depth' | 'event' | 'queue' | 'prio' | 'protocol' | 'startup' | 'cat' | 'of';
+    | 'core' | 'count' | 'depth' | 'event' | 'queue' | 'prio' | 'protocol' | 'startup' | 'cat' | 'of'
+    | 'resource' | 'exclusive';
 
 hidden terminal WS: /\s+/;
 // Must come before INT: the lexer takes the first terminal that matches, and

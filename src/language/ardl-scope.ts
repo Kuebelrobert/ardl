@@ -15,6 +15,8 @@ import {
     GrammarUtils,
     type AstNode,
     type CstNode,
+    type LangiumCoreServices,
+    type LangiumDocuments,
     type ReferenceInfo,
     type Scope
 } from 'langium';
@@ -22,14 +24,19 @@ import {
     isAccess,
     isBsw,
     isComposition,
+    isOs,
+    isOsAccess,
     isPortRef,
     isPrototype,
     isRunnableRef,
     isSwc,
+    isRunnable,
     isTrigger,
     type Bsw,
+    type Model,
     type Swc
 } from './generated/ast.js';
+import { mergeOs } from './ardl-semantics.js';
 
 /**
  * Names AST nodes for linking, the index and the outline.
@@ -63,11 +70,20 @@ export class ArdlNameProvider extends DefaultNameProvider {
  * - `proto.Port` in a connector sees the ports of the prototype's component type,
  * - a bare `Port` in a connector sees the composition's own (delegation) ports,
  * - `proto` in a connector sees the prototypes of the enclosing composition,
- * - `Swc.Runnable` in a task's `runs` sees the runnables of that component.
+ * - `Swc.Runnable` in a task's `runs` sees the runnables of that component,
+ * - `enters` of a runnable sees the exclusive areas of its own component,
+ * - a task or ISR sees the objects of every part of its OS, in any file.
  *
  * Every other reference uses Langium's default scoping (local, then global).
  */
 export class ArdlScopeProvider extends DefaultScopeProvider {
+    private readonly documents: LangiumDocuments;
+
+    constructor(services: LangiumCoreServices) {
+        super(services);
+        this.documents = services.shared.workspace.LangiumDocuments;
+    }
+
     override getScope(context: ReferenceInfo): Scope {
         const { container, property } = context;
 
@@ -92,6 +108,20 @@ export class ArdlScopeProvider extends DefaultScopeProvider {
         if (isRunnableRef(container) && property === 'runnable') {
             const owner = container.component.ref;
             return owner ? this.createScopeForNodes(owner.runnables) : EMPTY_SCOPE;
+        }
+
+        if (isOsAccess(container)) {
+            const os = AstUtils.getContainerOfType(container, isOs);
+            if (!os) {
+                return EMPTY_SCOPE;
+            }
+            const models = this.documents.all.map(d => d.parseResult.value as Model);
+            return this.createScopeForNodes(mergeOs(os.name, models).objects);
+        }
+
+        if (isRunnable(container) && property === 'enters') {
+            const component = AstUtils.getContainerOfType(container, (n): n is Swc | Bsw => isSwc(n) || isBsw(n));
+            return component ? this.createScopeForNodes(component.exclusiveAreas) : EMPTY_SCOPE;
         }
 
         // Triggers reference one port (`port`), accesses a list (`ports`).

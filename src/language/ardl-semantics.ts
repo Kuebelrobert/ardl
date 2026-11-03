@@ -5,7 +5,7 @@
  * problem and what the diagrams highlight (e.g. a red upward dependency in
  * the layers view) never disagree.
  */
-import type { Bsw, BswLayer, InterfaceKind, Mutex, Os, OsAccessKind, OsObject, Port } from './generated/ast.js';
+import { isOs, type Bsw, type BswLayer, type InterfaceKind, type Model, type Mutex, type Os, type OsAccessKind, type OsObject, type Port } from './generated/ast.js';
 
 /**
  * A port provides data or a service if it is a P-port or a PR-port.
@@ -51,22 +51,51 @@ export function skipsEcuAbstraction(user: Bsw, used: Bsw): boolean {
 /** OS profiles the validator knows. `generic` makes no assumptions beyond the basics. */
 export const OS_PROFILES = ['autosar', 'osek', 'threadx', 'freertos', 'generic'] as const;
 
-/** Locking protocols of a mutex. */
-export const MUTEX_PROTOCOLS = ['ceiling', 'inherit', 'none'] as const;
+/** Locking protocols of a mutex. Priority ceiling is a `resource`, not a mutex protocol. */
+export const MUTEX_PROTOCOLS = ['inherit', 'none'] as const;
 
-/** AUTOSAR OS and OSEK share the object model: resources with priority ceiling, events owned by one task, no semaphores. */
-export function isOsekLike(os: Os): boolean {
-    return os.profile === 'autosar' || os.profile === 'osek';
+/**
+ * One OS, merged from all `os` blocks of that name in the given models. The
+ * parts keep their source order; the first profile given is the profile of
+ * the whole OS.
+ */
+export interface MergedOs {
+    name: string;
+    profile?: string;
+    parts: Os[];
+    tasks: Os['tasks'];
+    isrs: Os['isrs'];
+    objects: Os['objects'];
 }
 
-/** The protocol of a mutex: as written, or the profile's default (ceiling for AUTOSAR/OSEK resources, inheritance otherwise). */
+export function mergeOs(name: string, models: Iterable<Model>): MergedOs {
+    const parts: Os[] = [];
+    for (const model of models) {
+        parts.push(...model.elements.filter((e): e is Os => isOs(e) && e.name === name));
+    }
+    return {
+        name,
+        profile: parts.find(p => p.profile)?.profile,
+        parts,
+        tasks: parts.flatMap(p => p.tasks),
+        isrs: parts.flatMap(p => p.isrs),
+        objects: parts.flatMap(p => p.objects)
+    };
+}
+
+/** AUTOSAR OS and OSEK share the object model: resources with priority ceiling, events owned by one task, no semaphores, no mutexes. */
+export function isOsekLike(profile: string | undefined): boolean {
+    return profile === 'autosar' || profile === 'osek';
+}
+
+/** The protocol of a mutex: as written, or priority inheritance. */
 export function mutexProtocol(mutex: Mutex): string {
-    return mutex.protocol ?? (isOsekLike(mutex.$container) ? 'ceiling' : 'inherit');
+    return mutex.protocol ?? 'inherit';
 }
 
-/** The object type each access works on, e.g. `locks` needs a mutex. */
-export const ACCESS_TARGET: Readonly<Record<OsAccessKind, OsObject['$type']>> = {
-    locks: 'Mutex', takes: 'Semaphore', gives: 'Semaphore', sends: 'Queue', receives: 'Queue', waits: 'Event', sets: 'Event'
+/** The object types each access works on, e.g. `locks` needs a resource or a mutex. */
+export const ACCESS_TARGET: Readonly<Record<OsAccessKind, ReadonlyArray<OsObject['$type']>>> = {
+    locks: ['Resource', 'Mutex'], takes: ['Semaphore'], gives: ['Semaphore'], sends: ['Queue'], receives: ['Queue'], waits: ['Event'], sets: ['Event']
 };
 
 /** Accesses that can block the caller, which an ISR must not do. */

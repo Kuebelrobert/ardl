@@ -43,20 +43,21 @@ The second and third file declare no interface, component or BSW module again; t
 | Port | `pport Name : Interface`, `rport ...`, `prport ...` |
 | Runnable | `runnable Name <triggers> <accesses>` |
 | Triggers | `every 10ms`, `on init`, `on data Port`, `on call Port`, `on mode Port` |
-| Accesses | `reads A, B`, `writes P`, `calls Client`, `switches ModePort` |
+| Accesses | `reads A, B`, `writes P`, `calls Client`, `switches ModePort`, `enters Ea` |
+| Exclusive area | `exclusive Ea` in an SWC or BSW module (`Rte_Enter` / `SchM_Enter`) |
 | Composition | `composition Name { ports, prototypes, connectors }` |
 | Prototype | `prototype Type` (named like the type) or `prototype name: Type` |
 | Connector | `connect proto.PPort -> proto.RPort`; delegation `connect OuterR -> proto.R`, `connect proto.P -> OuterP` |
 | OS | `os Name [profile autosar\|osek\|threadx\|freertos\|generic] { tasks, ISRs, objects }` |
 | Task | `task Name [prio 10] [every 10ms \| on startup] [core 0] [runs Swc.Runnable, ...] <os accesses>` |
 | ISR | `isr Name [cat 1\|2] [prio 5] [core 0] <os accesses>` |
-| OS objects | `mutex Name [protocol ceiling\|inherit\|none]`, `semaphore Name [count 2]`, `queue Name [of Type] [depth 8]`, `event Name` |
-| OS accesses | `locks M1, M2` (M2 while M1 is held), `takes S`, `gives S`, `sends Q`, `receives Q`, `waits E`, `sets E` |
+| OS objects | `resource Name` (priority ceiling), `mutex Name [protocol inherit\|none]`, `semaphore Name [count 2]`, `queue Name [of Type] [depth 8]`, `event Name` |
+| OS accesses | `locks R1, R2` (R2 while R1 is held, resources or mutexes), `takes S`, `gives S`, `sends Q`, `receives Q`, `waits E`, `sets E` |
 | Views | `view Name composition C`, `view Name component X`, `view Name layers [{ A, B }]`, `view Name os O`, each with optional `title "..."` |
 
-Without `view` declarations a file shows each composition, a BSW layer view if it declares BSW modules, each `os` and, if it has none of these, one view per SWC.
+Without `view` declarations a file shows each composition, a BSW layer view if it declares BSW modules, each OS with the parts declared in this file and, if it has none of these, one view per SWC. A `view ... os` shows all parts of the OS.
 
-Task clauses come in any order and may span lines, like the clauses of a runnable. `runs` maps runnables of any file to the task (the AUTOSAR RTE event to task mapping); BSW main functions are mapped the same way, e.g. `runs NvM.NvM_MainFunction`. Names inside an `os` block are local to it. ARDL deliberately has no timing model (WCET, schedule simulation, Gantt charts): it describes the structure, and timing analysis belongs in dedicated tools.
+Task clauses come in any order and may span lines, like the clauses of a runnable. `runs` maps runnables of any file to the task (the AUTOSAR RTE event to task mapping); BSW main functions are mapped the same way, e.g. `runs NvM.NvM_MainFunction`. Names inside an `os` are local to it. An OS can be split into several `os` blocks with the same name, in one file or in several, e.g. one file for the application tasks, one for BSW scheduling and one for supervision; together they are one OS for the checks and the OS view, and the profile is given in one of them. ARDL deliberately has no timing model (WCET, schedule simulation, Gantt charts): it describes the structure, and timing analysis belongs in dedicated tools.
 
 **Names are global** across all `.ardl` files of the workspace (there are no packages or imports). A model can be split into files by feature or by kind, e.g. interfaces in one file, but every name is declared exactly once. Views have a namespace of their own, so `view Body composition Body` is fine.
 
@@ -69,10 +70,11 @@ Task clauses come in any order and may span lines, like the clauses of a runnabl
 - Runnable accesses fit the port: `reads` a required sr/nv/param port, `writes` a provided sr/nv port, `calls` a required cs port, `switches` a provided mode port; same for the triggers.
 - Interface members fit the interface kind.
 - BSW layering: an upward `uses` (e.g. MCAL → services) is a warning; services using an MCAL driver directly is a hint. Complex drivers may use any layer.
-- OS profile: AUTOSAR/OSEK resources use the priority ceiling protocol and there are no semaphores, an AUTOSAR/OSEK event belongs to one task; ThreadX/FreeRTOS mutexes use priority inheritance.
-- OS objects: `locks` needs a mutex, `takes`/`gives` a semaphore, `sends`/`receives` a queue, `waits`/`sets` an event. Unused objects, queues without sender or receiver, events nobody sets or nobody waits for, and semaphores that are taken but never given are warnings.
+- OS profile: AUTOSAR/OSEK have resources, no mutexes and no semaphores, and an event belongs to one task. A `resource` (priority ceiling) is available in every profile, e.g. for the AUTOSAR OS API emulated on ThreadX with preemption-threshold; mutexes use priority inheritance or none.
+- OS objects: `locks` needs a resource or mutex, `takes`/`gives` a semaphore, `sends`/`receives` a queue, `waits`/`sets` an event. Unused objects, queues without sender or receiver, events nobody sets or nobody waits for, and semaphores that are taken but never given are warnings.
 - Priority inversion: a mutex with `protocol none` shared by tasks of different priority. Lock order: `locks A, B` in one task and `locks B, A` in another is a possible deadlock.
-- ISRs never block (`takes`, `receives`, `waits`); category 1 ISRs use no OS objects; RTOS mutexes cannot be locked from an ISR.
+- ISRs never block (`takes`, `receives`, `waits`); category 1 ISRs use no OS objects; mutexes cannot be locked from an ISR, resources can (category 2).
+- Exclusive areas: every area is entered by a runnable; an area whose runnables all run in one task needs no lock (hint).
 - Runnable mapping: each runnable runs in one task; a component with some mapped runnables needs all of them mapped, except pure servers (`on call` only); a periodic runnable's period is a multiple of its task's period. Components without any mapping are not reported, they may belong to another ECU.
 - Duplicate names, within a file and across files; unresolved references.
 
@@ -81,9 +83,9 @@ Task clauses come in any order and may span lines, like the clauses of a runnabl
 | View | Shows |
 |---|---|
 | Composition | Prototypes with their ports, assembly and delegation connectors. R-ports left, P-ports right, so data flows left to right. |
-| Component | One SWC or BSW module: ports, runnables, which runnable reads, writes, calls or serves which port. |
+| Component | One SWC or BSW module: ports, runnables, which runnable reads, writes, calls or serves which port, and the exclusive areas (hexagons) the runnables enter. |
 | Layers | BSW modules in the AUTOSAR layer bands (services, ECU abstraction, MCAL, complex drivers) with their `uses` dependencies. Upward dependencies are red. |
-| OS | Tasks and ISRs with priority, activation, core and their runnables (the first eight, all of them on hover), and the objects they share: hexagon = mutex, pill = semaphore, box with slots = queue, flag = event. Edges follow the flow: sender → queue → receiver, setter → event → waiter, giver → semaphore → taker; `locks` is a dashed line. |
+| OS | All parts of one OS: tasks and ISRs with priority, activation, core and their runnables (the first eight, all of them on hover), and the objects they share: hexagon = resource or mutex, pill = semaphore, box with slots = queue, flag = event. Edges follow the flow: sender → queue → receiver, setter → event → waiter, giver → semaphore → taker; `locks` is a dashed line. |
 
 Port symbols: triangle = sender-receiver (points in the data direction), filled circle = server, ring = client, diamond = mode (filled = manager, outline = user). Edge colors follow the interface kind.
 

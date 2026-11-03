@@ -22,6 +22,7 @@ import { renderComponent } from './component-view.js';
 import { renderComposition } from './composition-view.js';
 import { renderLayers } from './layers-view.js';
 import { renderOs } from './os-view.js';
+import { mergeOs, type MergedOs } from '../language/ardl-semantics.js';
 import { esc } from './svg.js';
 
 /** One rendered view. Sent as JSON to the preview, so it holds plain data only. */
@@ -39,13 +40,15 @@ export interface RenderedDiagram {
  *
  * A document with `view` declarations renders exactly those, in source order.
  * A document without views gets default views: one per composition, one
- * layers view of its BSW modules, one per `os` and, if it has none of these,
- * one per SWC. That way
- * a new file shows something before the user has written any view.
+ * layers view of its BSW modules, one per OS with the parts of this file
+ * and, if it has none of these, one per SWC. That way a new file shows
+ * something before the user has written any view, and a file that adds one
+ * concern to an OS (e.g. supervision) shows just that concern.
  *
  * @param model the document to render.
  * @param workspace every model of the workspace. A layers view without an
- *   explicit module list shows the BSW modules of all files.
+ *   explicit module list shows the BSW modules of all files, and an OS view
+ *   shows all parts of the OS, from every file.
  */
 export async function renderDiagrams(model: Model, workspace: Model[]): Promise<RenderedDiagram[]> {
     const views = model.elements.filter(isView);
@@ -69,9 +72,9 @@ export async function renderDiagrams(model: Model, workspace: Model[]): Promise<
         if (bsw.length) {
             await safely('layers', 'Basic software', () => renderLayers(bsw, 'Basic software'));
         }
-        const systems = model.elements.filter(isOs);
-        for (const os of systems) {
-            await safely(os.name, os.name, () => renderOs(os, os.name));
+        const systems = [...new Set(model.elements.filter(isOs).map(os => os.name))];
+        for (const name of systems) {
+            await safely(name, name, () => renderOs(partsIn(model, name), name));
         }
         if (compositions.length === 0 && bsw.length === 0 && systems.length === 0) {
             for (const swc of model.elements.filter(isSwc)) {
@@ -98,10 +101,20 @@ export async function renderDiagrams(model: Model, workspace: Model[]): Promise<
             await safely(view.name, title, () => renderLayers(modules, title));
         } else if (isOsView(view)) {
             const os = view.os.ref;
-            if (os) await safely(view.name, title, () => renderOs(os, title));
+            if (os) await safely(view.name, title, () => renderOs(mergeOs(os.name, workspace), title));
         }
     }
     return result;
+}
+
+/**
+ * The parts of OS `name` in one document, plus the objects of other parts
+ * that its tasks and ISRs use, so their edges are not lost.
+ */
+function partsIn(model: Model, name: string): MergedOs {
+    const own = mergeOs(name, [model]);
+    const used = [...own.tasks, ...own.isrs].flatMap(u => u.accesses.flatMap(a => a.objects.flatMap(o => o.ref ? [o.ref] : [])));
+    return { ...own, objects: [...new Set([...own.objects, ...used])] };
 }
 
 /** Small SVG with the error message, shown in place of a view whose layout failed. */

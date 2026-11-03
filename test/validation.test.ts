@@ -238,7 +238,7 @@ os O {
     task Lo prio 1 locks M takes Q
 }`);
         expect(result).toEqual(expect.arrayContaining([
-            "warning: 'M' is shared by tasks of different priority without a protocol: priority inversion. Use 'protocol inherit' or 'protocol ceiling'.",
+            "warning: 'M' is shared by tasks of different priority without a protocol: priority inversion. Use 'protocol inherit' or a resource.",
             "warning: 'Unused' is not used by any task or ISR.",
             "warning: 'Q' is sent to but nobody receives from it.",
             "warning: 'E' is never set: Hi wait forever.",
@@ -260,28 +260,90 @@ os O {
         ]);
     });
 
-    test('profiles: AUTOSAR has ceiling resources and no semaphores, ISRs do not block', async () => {
+    test('profiles: AUTOSAR has resources, no mutexes and no semaphores, ISRs do not block', async () => {
         const result = await diagnostics(`
 os O profile autosar {
-    mutex M protocol inherit
+    resource R
+    mutex M
     semaphore S
     event E
-    task A waits E locks M takes S
+    task A waits E locks R, M takes S
     task B waits E
-    isr I cat 2 sets E gives S locks M receives E
+    isr I cat 2 sets E gives S locks R receives E
     isr Fast cat 1 sets E
 }
 os P profile zephyr { }`);
         expect(result).toEqual(expect.arrayContaining([
-            "error: autosar resources use the priority ceiling protocol; 'inherit' is not available.",
-            'error: autosar has no semaphores. Use an event for signalling or a mutex (resource) for mutual exclusion.',
+            'error: autosar has no mutexes. Use a resource (priority ceiling).',
+            'error: autosar has no semaphores. Use an event for signalling or a resource for mutual exclusion.',
             "error: In autosar an event belongs to one task; 'E' is waited for by A, B.",
             "error: An ISR must not block: 'receives' can wait.",
             "error: A category 1 ISR must not use OS objects; make 'Fast' 'cat 2'.",
             "error: Unknown OS profile 'zephyr'. Use one of: autosar, osek, threadx, freertos, generic."
         ]));
-        // Category 2 ISRs may take AUTOSAR resources.
+        // Category 2 ISRs may take resources.
         expect(result.some(m => m.includes('cannot be locked from an ISR'))).toBe(false);
+    });
+
+    test('resources work in every profile, mutexes have no ceiling and stay out of ISRs', async () => {
+        const result = await diagnostics(`
+os O profile threadx {
+    resource R
+    mutex M protocol ceiling
+    task T prio 5 locks R, M
+    isr I cat 2 locks R
+    isr J cat 2 locks M
+}`);
+        expect(result).toEqual([
+            "error: Unknown protocol 'ceiling'. Use one of: inherit, none. For priority ceiling declare a 'resource'.",
+            'error: Mutexes cannot be locked from an ISR. Use a resource.'
+        ]);
+    });
+
+    test('an os split into several blocks and files is one OS', async () => {
+        await parse(SWCS + `
+os O profile threadx {
+    event E
+    queue Q
+    task T10 prio 5 every 10ms runs Ctrl.R_Main sets E sends Q
+}`);
+        const second = await parse(`
+os O {
+    task Init prio 9 on startup runs Ctrl.R_Init waits E receives Q
+}
+os O profile freertos { task X locks Nope }
+view V os O`, { validation: true });
+        const messages = (second.diagnostics ?? []).map(d => d.message);
+        // Objects of the other part resolve, and the mapping of Ctrl is complete across both parts.
+        expect(messages).toEqual([
+            "Could not resolve reference to OsObject named 'Nope'.",
+            "OS 'O' already has profile 'threadx' in another part."
+        ]);
+        const [view] = await renderDiagrams(second.parseResult.value,
+            shared.workspace.LangiumDocuments.all.map(d => d.parseResult.value as Model).toArray());
+        expect(view.svg).toContain('<title>T10 sends Q');
+        expect(view.svg).toContain('<title>Init receives Q');
+    });
+
+    test('exclusive areas: scoped to the component, unused ones and single-task ones are reported', async () => {
+        const result = await diagnostics(`
+swc application A {
+    exclusive Ea
+    exclusive Spare
+    runnable R1 every 10ms enters Ea
+    runnable R2 every 10ms enters Ea, Other
+}
+os O { task T every 10ms runs A.R1, A.R2 }`);
+        expect(result).toEqual([
+            "error: Could not resolve reference to ExclusiveArea named 'Other'.",
+            "warning: Exclusive area 'Spare' is not entered by any runnable.",
+            "info: Exclusive area 'A.Ea' is only entered from 'T' and needs no lock."
+        ]);
+        const [view] = await render(`
+swc application B { exclusive Ea  runnable R1 every 10ms enters Ea  runnable R2 every 5ms enters Ea }
+view V component B`);
+        expect(view.svg).not.toContain('layout failed');
+        expect(view.svg.match(/<title>R\d enters Ea/g)).toHaveLength(2);
     });
 
     test('os view lists runnables, folds long lists and draws one edge per use', async () => {

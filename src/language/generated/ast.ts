@@ -44,8 +44,10 @@ export type ArdlKeywordNames =
     | "depth"
     | "ecuAbstraction"
     | "ecual"
+    | "enters"
     | "event"
     | "every"
+    | "exclusive"
     | "gives"
     | "in"
     | "init"
@@ -75,6 +77,7 @@ export type ArdlKeywordNames =
     | "queue"
     | "reads"
     | "receives"
+    | "resource"
     | "rport"
     | "runnable"
     | "runs"
@@ -151,6 +154,7 @@ export function isArgumentDirection(item: unknown): item is ArgumentDirection {
 export interface Bsw extends langium.AstNode {
     readonly $container: Model;
     readonly $type: 'Bsw';
+    exclusiveAreas: Array<ExclusiveArea>;
     layer: BswLayer;
     name: string;
     ports: Array<Port>;
@@ -160,6 +164,7 @@ export interface Bsw extends langium.AstNode {
 
 export const Bsw = {
     $type: 'Bsw',
+    exclusiveAreas: 'exclusiveAreas',
     layer: 'layer',
     name: 'name',
     ports: 'ports',
@@ -318,6 +323,21 @@ export const Event = {
 
 export function isEvent(item: unknown): item is Event {
     return reflection.isInstance(item, Event.$type);
+}
+
+export interface ExclusiveArea extends langium.AstNode {
+    readonly $container: Bsw | Swc;
+    readonly $type: 'ExclusiveArea';
+    name: Name;
+}
+
+export const ExclusiveArea = {
+    $type: 'ExclusiveArea',
+    name: 'name'
+} as const;
+
+export function isExclusiveArea(item: unknown): item is ExclusiveArea {
+    return reflection.isInstance(item, ExclusiveArea.$type);
 }
 
 export interface InitTrigger extends langium.AstNode {
@@ -486,10 +506,10 @@ export function isMutex(item: unknown): item is Mutex {
     return reflection.isInstance(item, Mutex.$type);
 }
 
-export type Name = 'call' | 'cat' | 'core' | 'count' | 'data' | 'depth' | 'event' | 'in' | 'init' | 'inout' | 'layer' | 'mode' | 'modes' | 'of' | 'out' | 'prio' | 'protocol' | 'queue' | 'startup' | 'title' | string;
+export type Name = 'call' | 'cat' | 'core' | 'count' | 'data' | 'depth' | 'event' | 'exclusive' | 'in' | 'init' | 'inout' | 'layer' | 'mode' | 'modes' | 'of' | 'out' | 'prio' | 'protocol' | 'queue' | 'resource' | 'startup' | 'title' | string;
 
 export function isName(item: unknown): item is Name {
-    return item === 'data' || item === 'init' || item === 'call' || item === 'mode' || item === 'modes' || item === 'layer' || item === 'title' || item === 'in' || item === 'out' || item === 'inout' || item === 'core' || item === 'count' || item === 'depth' || item === 'event' || item === 'queue' || item === 'prio' || item === 'protocol' || item === 'startup' || item === 'cat' || item === 'of' || (typeof item === 'string' && (/[_a-zA-Z][\w]*/.test(item)));
+    return item === 'data' || item === 'init' || item === 'call' || item === 'mode' || item === 'modes' || item === 'layer' || item === 'title' || item === 'in' || item === 'out' || item === 'inout' || item === 'core' || item === 'count' || item === 'depth' || item === 'event' || item === 'queue' || item === 'prio' || item === 'protocol' || item === 'startup' || item === 'cat' || item === 'of' || item === 'resource' || item === 'exclusive' || (typeof item === 'string' && (/[_a-zA-Z][\w]*/.test(item)));
 }
 
 export interface Operation extends langium.AstNode {
@@ -572,7 +592,7 @@ export function isOsAccessKind(item: unknown): item is OsAccessKind {
     return item === 'locks' || item === 'takes' || item === 'gives' || item === 'sends' || item === 'receives' || item === 'waits' || item === 'sets';
 }
 
-export type OsObject = Event | Mutex | Queue | Semaphore;
+export type OsObject = Event | Mutex | Queue | Resource | Semaphore;
 
 export const OsObject = {
     $type: 'OsObject'
@@ -679,10 +699,26 @@ export function isQueue(item: unknown): item is Queue {
     return reflection.isInstance(item, Queue.$type);
 }
 
+export interface Resource extends langium.AstNode {
+    readonly $container: Os;
+    readonly $type: 'Resource';
+    name: string;
+}
+
+export const Resource = {
+    $type: 'Resource',
+    name: 'name'
+} as const;
+
+export function isResource(item: unknown): item is Resource {
+    return reflection.isInstance(item, Resource.$type);
+}
+
 export interface Runnable extends langium.AstNode {
     readonly $container: Bsw | Swc;
     readonly $type: 'Runnable';
     accesses: Array<Access>;
+    enters: Array<langium.Reference<ExclusiveArea>>;
     name: Name;
     triggers: Array<Trigger>;
 }
@@ -690,6 +726,7 @@ export interface Runnable extends langium.AstNode {
 export const Runnable = {
     $type: 'Runnable',
     accesses: 'accesses',
+    enters: 'enters',
     name: 'name',
     triggers: 'triggers'
 } as const;
@@ -745,6 +782,7 @@ export function isSemaphore(item: unknown): item is Semaphore {
 export interface Swc extends langium.AstNode {
     readonly $container: Model;
     readonly $type: 'Swc';
+    exclusiveAreas: Array<ExclusiveArea>;
     kind: SwcKind;
     name: string;
     ports: Array<Port>;
@@ -753,6 +791,7 @@ export interface Swc extends langium.AstNode {
 
 export const Swc = {
     $type: 'Swc',
+    exclusiveAreas: 'exclusiveAreas',
     kind: 'kind',
     name: 'name',
     ports: 'ports',
@@ -850,6 +889,7 @@ export type ArdlAstType = {
     DataTrigger: DataTrigger
     Element: Element
     Event: Event
+    ExclusiveArea: ExclusiveArea
     InitTrigger: InitTrigger
     Interface: Interface
     InterfaceMember: InterfaceMember
@@ -870,6 +910,7 @@ export type ArdlAstType = {
     PortRef: PortRef
     Prototype: Prototype
     Queue: Queue
+    Resource: Resource
     Runnable: Runnable
     RunnableOwner: RunnableOwner
     RunnableRef: RunnableRef
@@ -915,6 +956,11 @@ export class ArdlAstReflection extends langium.AbstractAstReflection {
         Bsw: {
             name: Bsw.$type,
             properties: {
+                exclusiveAreas: {
+                    name: Bsw.exclusiveAreas,
+                    defaultValue: [],
+                    optional: true
+                },
                 layer: {
                     name: Bsw.layer
                 },
@@ -1052,6 +1098,15 @@ export class ArdlAstReflection extends langium.AbstractAstReflection {
                 }
             },
             superTypes: [OsObject.$type]
+        },
+        ExclusiveArea: {
+            name: ExclusiveArea.$type,
+            properties: {
+                name: {
+                    name: ExclusiveArea.name
+                }
+            },
+            superTypes: []
         },
         InitTrigger: {
             name: InitTrigger.$type,
@@ -1335,12 +1390,27 @@ export class ArdlAstReflection extends langium.AbstractAstReflection {
             },
             superTypes: [OsObject.$type]
         },
+        Resource: {
+            name: Resource.$type,
+            properties: {
+                name: {
+                    name: Resource.name
+                }
+            },
+            superTypes: [OsObject.$type]
+        },
         Runnable: {
             name: Runnable.$type,
             properties: {
                 accesses: {
                     name: Runnable.accesses,
                     defaultValue: [],
+                    optional: true
+                },
+                enters: {
+                    name: Runnable.enters,
+                    defaultValue: [],
+                    referenceType: ExclusiveArea.$type,
                     optional: true
                 },
                 name: {
@@ -1390,6 +1460,11 @@ export class ArdlAstReflection extends langium.AbstractAstReflection {
         Swc: {
             name: Swc.$type,
             properties: {
+                exclusiveAreas: {
+                    name: Swc.exclusiveAreas,
+                    defaultValue: [],
+                    optional: true
+                },
                 kind: {
                     name: Swc.kind
                 },
